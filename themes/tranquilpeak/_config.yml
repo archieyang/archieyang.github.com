@@ -25,15 +25,15 @@ sidebar:
             icon: home
         categories:
             title: Categories
-            url: /categories
+            url: /all-categories
             icon: bookmark
         tags:
             title: Tags
-            url: /tags
+            url: /all-tags
             icon: tags
         archives:
             title: Archives
-            url: /archives
+            url: /all-archives
             icon: archive
         about:
             title: About me
@@ -77,7 +77,7 @@ sidebar:
 # Author
 author:
     email: yangyxcn@gmail.com
-    bio: Love code
+    bio: 
     job:
     location: Beijing, China
     picture:    # Your profile picture located in folder `source/_images/` (development)
