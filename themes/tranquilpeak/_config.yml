@@ -44,26 +44,10 @@ sidebar:
              title: GitHub
              url: https://github.com/archieyang
              icon: github
-        # stack_overflow:
-        #     title: Stack Overflow
-        #     url: http://stackoverflow.com/users/
-        #     icon: stack-overflow
-        #twitter:
-        #     title: Twitter
-        #     url: https://twitter.com/
-        #     icon: twitter
-        # facebook:
-        #     title: Facebook
-        #     url: https://www.facebook.com/
-        #     icon: facebook
-        # google_plus:
-        #     title: Google +
-        #     url: https://plus.google.com/
-        #     icon: google-plus
-        # linked_in:
-        #     title: Linked In
-        #     url: https://www.linkedin.com/profile/
-        #     icon: linkedin
+        weibo:
+             title: Weibo
+             url: http://weibo.com/archieyang
+             icon: weibo
         mail:
              title: Mail
              url: mailto:yangyxcn@gmail.com
