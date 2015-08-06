@@ -4,11 +4,11 @@ title: 依赖注入原理
 date: 2015-08-01 12:03:56
 comments: true
 categories: Software Engineering
-tags: [Dependency Injection, Inversion of Controll, Software Engineering]
+tags: [Dependency Injection, Inversion of Control, Software Engineering]
 ---
 
 #0. 前言
-在软件工程领域，依赖注入（Dependency Injection）是用于实现控制反转（Inversion of Controll）的最常见的方式之一。本文主要介绍依赖注入原理和常见的实现方式，重点在于介绍这种年轻的设计模式的适用场景及优势。
+在软件工程领域，依赖注入（Dependency Injection）是用于实现控制反转（Inversion of Control）的最常见的方式之一。本文主要介绍依赖注入原理和常见的实现方式，重点在于介绍这种年轻的设计模式的适用场景及优势。
 #1. 为什么需要依赖注入
 控制反转用于解耦，解的究竟是谁和谁的耦？这是我在最初了解依赖注入时候产生的第一个问题。
 
