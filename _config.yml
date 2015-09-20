@@ -7,9 +7,11 @@ title: CodeThink
 subtitle: Thoughts on Life and Code
 description:
 author: Archie Yang
-language:
+language: zh-Hans
 timezone:
-duoshuo_shortname: codethink
+duoshuo:
+  enable: true
+  shortname: codethink
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
@@ -66,7 +68,7 @@ archive_generator:
 # Extensions
 ## Plugins: http://hexo.io/plugins/
 ## Themes: http://hexo.io/themes/
-theme: tranquilpeak 
+theme: next
 
 # Deployment
 ## Docs: http://hexo.io/docs/deployment.html

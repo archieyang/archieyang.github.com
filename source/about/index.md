@@ -17,6 +17,7 @@ Podcast，reddit重度用户，37signals读者。目前正在自学设计和iOS�
 [更多请看Timeline](/timeline)  
 
 你可以通过以方式找到我  
+GitHub: [https://github.com/archieyang](https://github.com/archieyang)
 微信：overflowyang
 微博：[@archieyang](http://weibo.com/archieyang)
 Email: <a href="mailto:yangyxcn@gmail.com">yangyxcn@gmail.com</a>
