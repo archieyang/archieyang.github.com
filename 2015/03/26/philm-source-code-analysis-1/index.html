@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="#0. 前言 Watch Philm这一系列文章主要是对近期阅读Chris Banes的开源项目Philm源码的整理。Android开发本身没有提供类似MVP之类的框架，只是提供了构建应用的基础组件。这一方面降低了上手难度，提供了极大的开发时的灵活度，但是对于新手极易写出高耦合的坏味道的代码。Philm本身构建了一套MVP架构的实现，本文也就基于Philm项目的源码来分析在Android开发中如何">
+<meta name="keywords" content="Android,MVP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Philm项目源码分解析(1): 基本概念">
+<meta property="og:url" content="http://codethink.me/2015/03/26/philm-source-code-analysis-1/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="#0. 前言 Watch Philm这一系列文章主要是对近期阅读Chris Banes的开源项目Philm源码的整理。Android开发本身没有提供类似MVP之类的框架，只是提供了构建应用的基础组件。这一方面降低了上手难度，提供了极大的开发时的灵活度，但是对于新手极易写出高耦合的坏味道的代码。Philm本身构建了一套MVP架构的实现，本文也就基于Philm项目的源码来分析在Android开发中如何">
+<meta property="og:image" content="http://codethink.me/images/mvc.png">
+<meta property="og:image" content="http://codethink.me/images/model2_mvc.png">
+<meta property="og:image" content="http://codethink.me/images/mvp.png">
+<meta property="og:image" content="http://codethink.me/images/mvvm.png">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Philm项目源码分解析(1): 基本概念">
+<meta name="twitter:description" content="#0. 前言 Watch Philm这一系列文章主要是对近期阅读Chris Banes的开源项目Philm源码的整理。Android开发本身没有提供类似MVP之类的框架，只是提供了构建应用的基础组件。这一方面降低了上手难度，提供了极大的开发时的灵活度，但是对于新手极易写出高耦合的坏味道的代码。Philm本身构建了一套MVP架构的实现，本文也就基于Philm项目的源码来分析在Android开发中如何">
+<meta name="twitter:image" content="http://codethink.me/images/mvc.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Philm项目源码分解析(1): 基本概念</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2015/03/27/philm-source-code-analysis-2/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2014/09/14/embedded-tab-bar/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/03/26/philm-source-code-analysis-1/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&text=Philm项目源码分解析(1): 基本概念"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&is_video=false&description=Philm项目源码分解析(1): 基本概念"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Philm项目源码分解析(1): 基本概念&body=Check out this article: http://codethink.me/2015/03/26/philm-source-code-analysis-1/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&name=Philm项目源码分解析(1): 基本概念&description=&lt;p&gt;#0. 前言&lt;/p&gt;
+&lt;p&gt;Watch Philm这一系列文章主要是对近期阅读Chris Banes的开源项目Philm源码的整理。Android开发本身没有提供类似MVP之类的框架，只是提供了构建应用的基础组件。这一方面降低了上手难度，提供了极大的开发时的灵活度，但是对于新手极易写出高耦合的坏味道的代码。Philm本身构建了一套MVP架构的实现，本文也就基于Philm项目的源码来分析在Android开发中如何利用MVP模式构建程序。&lt;/p&gt;
+&lt;p&gt;本文为这个系列的第一篇，重点介绍MVC,MVP以及MVVM架构的基本概念以及他们的区别。&lt;br&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Philm项目源码分解析(1): 基本概念
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2015-03-26T10:54:57.000Z" itemprop="datePublished">2015-03-26</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Android/">Android</a>, <a class="tag-link" href="/tags/MVP/">MVP</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>#0. 前言</p>
+<p>Watch Philm这一系列文章主要是对近期阅读Chris Banes的开源项目Philm源码的整理。Android开发本身没有提供类似MVP之类的框架，只是提供了构建应用的基础组件。这一方面降低了上手难度，提供了极大的开发时的灵活度，但是对于新手极易写出高耦合的坏味道的代码。Philm本身构建了一套MVP架构的实现，本文也就基于Philm项目的源码来分析在Android开发中如何利用MVP模式构建程序。</p>
+<p>本文为这个系列的第一篇，重点介绍MVC,MVP以及MVVM架构的基本概念以及他们的区别。<br><a id="more"></a></p>
+<p>#1. MVC<br>MVC是一个传统的主流UI框架，现在的MVC框架经过演变主要分为两种。</p>
+<p>第一种是传统的MVC框架，如下图所示。传统的MVC框架使用了一个长期存在的View和一个可更换的Controller。例如，在一个登录界面，根据用户是否已经登录，可能会有不同的Controller来响应。</p>
+<p>由于传统MVC框架中保留一个长期存在的View，所有的用户交互都要通过这个View实现，它对于前端开发是一个极为有效的模式。<br><img src="/images/mvc.png" alt=""></p>
+<p>另一种MVC被称为Model2 MVC，如图所示。有争论说Model2并不是一个完全的MVC框架，但是大多数的现代实现（比如Ruby on Rails）都把它归为MVC。<br><img src="/images/model2_mvc.png" alt=""><br><strong>Model2的聪明之处在于它要求”fat models and thin controllers”，也就是讲更多的代码放入Model中，而不是Controller中。由于需要监听并响应View的输入，传统的MVC更倾向于重型Controller（也就是使Controller容纳更多的业务逻辑）。</strong></p>
+<p>由于HTTP协议本身是无状态的，在不同的请求之间View本身并不需要保存其状态。大多数服务器端开发框架都使用Session Cookies保存应用程序状态，因此他们将Controller和View的通信设计为单项的就十分恰当了，但是这并不适用于前端框架。实际上，很多框架的Controller被精简为一个简单的路由机制。</p>
+<p>#2. MVP<br>MVP模式是一种分化的MVC，相比于传统的MVC模式的不同之处在于：</p>
+<p>1）View不能直接于Model通信；</p>
+<p>2）Presenter包含对View的引用，并根据Model的变化来更新View。</p>
+<p><img src="/images/mvp.png" alt=""></p>
+<p>MVP模式主要有两种实现：</p>
+<p>1）Passive View: View被设计的尽可能简单，所有的表现和业务逻辑都放在Presenter中实现。</p>
+<p>2）Supervising Controller： View中可以包含简单的逻辑。View中无法满足的业务逻辑才放在Presenter中实现。</p>
+<p>在Android的MVP实现里通常包含4个要素</p>
+<p>(1) View: 负责绘制UI元素、与用户进行交互(Activity或Fragment);</p>
+<p>(2) View interface: View需要实现的接口，View通过View interface与Presenter进行交互，降低耦合，方便进行单元测试</p>
+<p>(3) Model: 负责业务Bean的操作。</p>
+<p>(4) Presenter: 作为View与Model交互的纽带，承载了大部分的复杂逻辑。</p>
+<p>#3. MVVM<br><img src="/images/mvvm.png" alt=""><br>Model-View-ViewModel模式于MVP模式极为类似，二者最大的不同在于MVVM假设ViewModel(相当于MVP中的Presenter)中的变化会被自动反应到View中，这种双向绑定并不需要开发者维护，而是基于框架提供了数据绑定引擎实现。Angular 1.x就是基于MVVM模式实现的。</p>
+<p>#参考资料</p>
+<ol>
+<li><a href="http://blog.nodejitsu.com/scaling-isomorphic-javascript-code/" target="_blank" rel="external">http://blog.nodejitsu.com/scaling-isomorphic-javascript-code/</a></li>
+<li><a href="http://blog.csdn.net/vector_yi/article/details/24719873" target="_blank" rel="external">http://blog.csdn.net/vector_yi/article/details/24719873</a></li>
+<li><a href="http://www.cnblogs.com/indream/p/3602348.html" target="_blank" rel="external">http://www.cnblogs.com/indream/p/3602348.html</a></li>
+</ol>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/03/26/philm-source-code-analysis-1/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&text=Philm项目源码分解析(1): 基本概念"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&is_video=false&description=Philm项目源码分解析(1): 基本概念"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Philm项目源码分解析(1): 基本概念&body=Check out this article: http://codethink.me/2015/03/26/philm-source-code-analysis-1/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&title=Philm项目源码分解析(1): 基本概念"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/03/26/philm-source-code-analysis-1/&name=Philm项目源码分解析(1): 基本概念&description=&lt;p&gt;#0. 前言&lt;/p&gt;
+&lt;p&gt;Watch Philm这一系列文章主要是对近期阅读Chris Banes的开源项目Philm源码的整理。Android开发本身没有提供类似MVP之类的框架，只是提供了构建应用的基础组件。这一方面降低了上手难度，提供了极大的开发时的灵活度，但是对于新手极易写出高耦合的坏味道的代码。Philm本身构建了一套MVP架构的实现，本文也就基于Philm项目的源码来分析在Android开发中如何利用MVP模式构建程序。&lt;/p&gt;
+&lt;p&gt;本文为这个系列的第一篇，重点介绍MVC,MVP以及MVVM架构的基本概念以及他们的区别。&lt;br&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

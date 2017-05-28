@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="#0. 前言 上周朋友拿美团外卖客户端的店铺页面，问我顶部文字详情展开的实现方式，这个效果本身就是一个已经有maxline设置的TextView展开的实现，但是没有对控件的跳变做更多的处理，感觉体验不是很好。于是我先仿写一个类似效果，又在原来的基础上把跳变改成了动画，效果如图所示。">
+<meta name="keywords" content="Android,TextView">
+<meta property="og:type" content="article">
+<meta property="og:title" content="实现画卷式展开的TextView">
+<meta property="og:url" content="http://codethink.me/2015/04/20/android-fold-textview/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="#0. 前言 上周朋友拿美团外卖客户端的店铺页面，问我顶部文字详情展开的实现方式，这个效果本身就是一个已经有maxline设置的TextView展开的实现，但是没有对控件的跳变做更多的处理，感觉体验不是很好。于是我先仿写一个类似效果，又在原来的基础上把跳变改成了动画，效果如图所示。">
+<meta property="og:image" content="http://codethink.me/images/animated-flip-desc.gif">
+<meta property="og:image" content="http://codethink.me/images/normal-flip-desc.gif">
+<meta property="og:image" content="http://codethink.me/images/meituan-waimai.gif">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="实现画卷式展开的TextView">
+<meta name="twitter:description" content="#0. 前言 上周朋友拿美团外卖客户端的店铺页面，问我顶部文字详情展开的实现方式，这个效果本身就是一个已经有maxline设置的TextView展开的实现，但是没有对控件的跳变做更多的处理，感觉体验不是很好。于是我先仿写一个类似效果，又在原来的基础上把跳变改成了动画，效果如图所示。">
+<meta name="twitter:image" content="http://codethink.me/images/animated-flip-desc.gif">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>实现画卷式展开的TextView</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2015/04/23/improving-comment-rendering-on-android/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2015/03/27/philm-source-code-analysis-3/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/04/20/android-fold-textview/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/04/20/android-fold-textview/&text=实现画卷式展开的TextView"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/04/20/android-fold-textview/&is_video=false&description=实现画卷式展开的TextView"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=实现画卷式展开的TextView&body=Check out this article: http://codethink.me/2015/04/20/android-fold-textview/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/04/20/android-fold-textview/&name=实现画卷式展开的TextView&description=&lt;p&gt;#0. 前言&lt;/p&gt;
+&lt;p&gt;上周朋友拿美团外卖客户端的店铺页面，问我顶部文字详情展开的实现方式，这个效果本身就是一个已经有maxline设置的TextView展开的实现，但是没有对控件的跳变做更多的处理，感觉体验不是很好。于是我先仿写一个类似效果，又在原来的基础上把跳变改成了动画，效果如图所示。&lt;br&gt;&lt;img src=&quot;/images/animated-flip-desc.gif&quot; alt=&quot;&quot;&gt;&lt;br&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        实现画卷式展开的TextView
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2015-04-20T11:01:36.000Z" itemprop="datePublished">2015-04-20</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Android/">Android</a>, <a class="tag-link" href="/tags/TextView/">TextView</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>#0. 前言</p>
+<p>上周朋友拿美团外卖客户端的店铺页面，问我顶部文字详情展开的实现方式，这个效果本身就是一个已经有maxline设置的TextView展开的实现，但是没有对控件的跳变做更多的处理，感觉体验不是很好。于是我先仿写一个类似效果，又在原来的基础上把跳变改成了动画，效果如图所示。<br><img src="/images/animated-flip-desc.gif" alt=""><br><a id="more"></a><br>关于这个交互设计的一点思考：之前在看一些色彩搭配的书籍时，有个观点说实际UI设计中看起来搭配的舒服的颜色，都是在自然界中可以出现的色彩搭配。同理到这个跳变，实际上是在自然界中没有什么物体有这么快的速度，因此这个速度（跳变）给人的体验并不好。</p>
+<p>#1. 实现</p>
+<p>##1.1 布局实现<br>布局的核心部分是图片背景及被折叠的详情文字。其实现如下。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></div><div class="line">              <span class="attr">xmlns:tools</span>=<span class="string">"http://schemas.android.com/tools"</span></div><div class="line">              <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></div><div class="line">              <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span></div><div class="line">              <span class="attr">tools:context</span>=<span class="string">".MainActivity"</span>&gt;</div><div class="line"></div><div class="line">    <span class="tag">&lt;<span class="name">ScrollView</span></span></div><div class="line">        <span class="attr">android:layout_width</span>=<span class="string">"fill_parent"</span></div><div class="line">        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>&gt;</div><div class="line"></div><div class="line">        <span class="tag">&lt;<span class="name">LinearLayout</span></span></div><div class="line">            <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span></div><div class="line">            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span></div><div class="line">            <span class="attr">android:orientation</span>=<span class="string">"vertical"</span>&gt;</div><div class="line"></div><div class="line">            <span class="tag">&lt;<span class="name">FrameLayout</span></span></div><div class="line"></div><div class="line">                <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></div><div class="line">                <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>&gt;</div><div class="line">                <span class="tag">&lt;<span class="name">ImageView</span></span></div><div class="line">                    <span class="attr">android:id</span>=<span class="string">"@+id/bg"</span></div><div class="line">                    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></div><div class="line">                    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span></div><div class="line">                    <span class="attr">android:src</span>=<span class="string">"@drawable/text_bg"</span></div><div class="line">                    <span class="attr">android:scaleType</span>=<span class="string">"centerCrop"</span>/&gt;</div><div class="line">                <span class="tag">&lt;<span class="name">LinearLayout</span></span></div><div class="line">                    <span class="attr">android:id</span>=<span class="string">"@+id/content"</span></div><div class="line">                    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></div><div class="line">                    <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span></div><div class="line">                    <span class="attr">android:background</span>=<span class="string">"#cc333333"</span></div><div class="line">                    <span class="attr">android:orientation</span>=<span class="string">"vertical"</span>&gt;</div><div class="line">                    <span class="tag">&lt;<span class="name">LinearLayout</span></span></div><div class="line">                        <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></div><div class="line">                        <span class="attr">android:layout_height</span>=<span class="string">"150dip"</span></div><div class="line">                        /&gt;</div><div class="line">                    <span class="tag">&lt;<span class="name">TextView</span></span></div><div class="line">                        <span class="attr">android:id</span>=<span class="string">"@+id/descriptions"</span></div><div class="line">                        <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span></div><div class="line">                        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span></div><div class="line">                        <span class="attr">android:layout_gravity</span>=<span class="string">"center_horizontal"</span></div><div class="line">                        <span class="attr">android:paddingLeft</span>=<span class="string">"10dip"</span></div><div class="line">                        <span class="attr">android:paddingRight</span>=<span class="string">"10dip"</span></div><div class="line">                        <span class="attr">android:textColor</span>=<span class="string">"#ffffff"</span></div><div class="line">                        <span class="attr">android:paddingTop</span>=<span class="string">"@dimen/activity_vertical_margin"</span>/&gt;</div><div class="line"></div><div class="line">                    <span class="tag">&lt;<span class="name">ImageView</span></span></div><div class="line">                        <span class="attr">android:id</span>=<span class="string">"@+id/show_detail_button"</span></div><div class="line">                        <span class="attr">android:layout_width</span>=<span class="string">"30dip"</span></div><div class="line">                        <span class="attr">android:layout_height</span>=<span class="string">"30dip"</span></div><div class="line">                        <span class="attr">android:layout_gravity</span>=<span class="string">"bottom|center_horizontal"</span></div><div class="line">                        <span class="attr">android:src</span>=<span class="string">"@drawable/arrow_down"</span>/&gt;</div><div class="line">                <span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></div><div class="line"></div><div class="line">            <span class="tag">&lt;/<span class="name">FrameLayout</span>&gt;</span></div><div class="line"></div><div class="line">            <span class="tag">&lt;<span class="name">LinearLayout</span></span></div><div class="line">                <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></div><div class="line">                <span class="attr">android:layout_height</span>=<span class="string">"600dip"</span></div><div class="line">                <span class="attr">android:background</span>=<span class="string">"#333333"</span>&gt;<span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></div><div class="line">        <span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">ScrollView</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>由于直接设置背景对于文字展开时，图片的效果可控性很差，这里选择了使用FrameLayout将这一部分分为前景和背景。前景为包含被折叠TextView的content，背景为一个scaleType为centerCrop的ImageView。</p>
+<p>##1.2 展开效果<br>位于content中的TextView在onCreate是被设置了最大行数descriptions.setMaxLines(currentLines);<br>展开时，只需要将最大行数设为Integer.MAX_VALUE即可其核心代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">showDetailButton.setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View view)</span> </span>&#123;</div><div class="line">                currentLines = currentLines == LIMIT ? Integer.MAX_VALUE : LIMIT;</div><div class="line">                descriptions.setMaxLines(currentLines);</div><div class="line">                showDetailButton.setRotation(<span class="number">180</span> - showDetailButton.getRotation());</div><div class="line"></div><div class="line">                contentView.requestLayout();</div><div class="line"></div><div class="line"></div><div class="line">            &#125;</div><div class="line">        &#125;);</div></pre></td></tr></table></figure>
+<p>这里的showDetailButton.setRotation(180 - showDetailButton.getRotation());将自身翻转，使箭头反向。</p>
+<p>这时点击showDetailButton，文字会全部展开，但是背景不会随文字展开而展开。因此需要在content发生变化时，通知背景ImageView进行变化，在onCreate中增加对contentView　layout 的监听。这部分的核心代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">contentView.addOnLayoutChangeListener(<span class="keyword">new</span> View.OnLayoutChangeListener() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onLayoutChange</span><span class="params">(View view, <span class="keyword">int</span> i, <span class="keyword">int</span> i2, <span class="keyword">int</span> i3, <span class="keyword">int</span> i4, <span class="keyword">int</span> i5, <span class="keyword">int</span> i6, <span class="keyword">int</span> i7, <span class="keyword">int</span> i8)</span> </span>&#123;</div><div class="line">                bg.getLayoutParams().height = contentView.getHeight();</div><div class="line">                bg.requestLayout();</div><div class="line">            &#125;</div><div class="line">        &#125;);</div></pre></td></tr></table></figure></p>
+<p>至此实现了美团外卖店铺详情的效果，完整代码在<a href="https://github.com/archieyang/FlipDesc/tree/95c2865e2e22e04646d14afb3abbe392583c41a2" target="_blank" rel="external">这里</a>，效果如下图所示。<br><img src="/images/normal-flip-desc.gif" alt=""></p>
+<p>美团的效果如下图所示。<br><img src="/images/meituan-waimai.gif" alt=""></p>
+<p>#2. 更好的实现<br>这一部分是我对原来效果的优化，主要包括button和详情展开两部分。</p>
+<p>##2.1 Button旋转<br>在设置监听器时的代码<br>showDetailButton.setRotation(180 - showDetailButton.getRotation());比较简单粗暴，直接将箭头调转方向，这里我未showDetailButton增加了一个旋转动画，代码如下<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">showDetailButton.setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View view)</span> </span>&#123;</div><div class="line">        ...</div><div class="line">        Animation animation = <span class="keyword">new</span> RotateAnimation(</div><div class="line">                currentLines == LIMIT ? <span class="number">0</span> : <span class="number">180</span>,</div><div class="line">                currentLines == LIMIT ? <span class="number">180</span> : <span class="number">360</span>,</div><div class="line">                Animation.RELATIVE_TO_SELF,</div><div class="line">                <span class="number">0.5f</span>,</div><div class="line">                Animation.RELATIVE_TO_SELF,</div><div class="line">                <span class="number">0.5f</span>);</div><div class="line"></div><div class="line">        animation.setDuration(<span class="number">300</span>);</div><div class="line">        animation.setFillAfter(<span class="keyword">true</span>);</div><div class="line">        showDetailButton.startAnimation(animation);</div><div class="line">        ...</div><div class="line"></div><div class="line"></div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure><br>这里根据设置之后的TextView状态对showDetailButton进行旋转。</p>
+<p>##2.2 展开动画<br>实现展开效果的expand函数如下所示，这里通过让高度随时间变化实现逐渐展开的效果。此外需要注意的是这里为动画设置了监听器。为了避免文字被卷起的边缘压到，分别在展开后和收缩前对TextView的maxLine进行修改。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">expand</span><span class="params">(<span class="keyword">final</span> View v, <span class="keyword">final</span>  <span class="keyword">float</span> originHeight, <span class="keyword">final</span> <span class="keyword">float</span> targetHeight)</span> </span>&#123;</div><div class="line">    Animation a = <span class="keyword">new</span> Animation()&#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">applyTransformation</span><span class="params">(<span class="keyword">float</span> interpolatedTime, Transformation t)</span> </span>&#123;</div><div class="line">            v.getLayoutParams().height = (<span class="keyword">int</span>)(originHeight + (targetHeight - originHeight) * interpolatedTime);</div><div class="line">            v.requestLayout();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">willChangeBounds</span><span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    a.setDuration(<span class="number">600</span>);</div><div class="line">    a.setFillAfter(<span class="keyword">true</span>);</div><div class="line">    a.setAnimationListener(<span class="keyword">new</span> Animation.AnimationListener() &#123;</div><div class="line">        <span class="keyword">private</span> <span class="keyword">boolean</span> maxLineDidSet = <span class="keyword">false</span>;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onAnimationStart</span><span class="params">(Animation animation)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span>(currentLines == Integer.MAX_VALUE) &#123;</div><div class="line">                currentLines = LIMIT;</div><div class="line">                descriptions.setMaxLines(currentLines);</div><div class="line">                maxLineDidSet = <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onAnimationEnd</span><span class="params">(Animation animation)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span>(!maxLineDidSet &amp;&amp; currentLines == LIMIT) &#123;</div><div class="line">                currentLines = Integer.MAX_VALUE;</div><div class="line">                descriptions.setMaxLines(currentLines);</div><div class="line">            &#125;</div><div class="line"></div><div class="line"></div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onAnimationRepeat</span><span class="params">(Animation animation)</span> </span>&#123;</div><div class="line"></div><div class="line">        &#125;</div><div class="line">    &#125;);</div><div class="line">    v.startAnimation(a);</div><div class="line">&#125;</div><div class="line"></div></pre></td></tr></table></figure><br>下一步需要拿到TextView在收缩时和展开时的高度。在contentView.addOnLayoutChangeListener中增加获取高度的代码（初始高度设置为-1）：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">   contentView.addOnLayoutChangeListener(<span class="keyword">new</span> View.OnLayoutChangeListener() &#123;</div><div class="line">       <span class="meta">@Override</span></div><div class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onLayoutChange</span><span class="params">(View view, <span class="keyword">int</span> i, <span class="keyword">int</span> i2, <span class="keyword">int</span> i3, <span class="keyword">int</span> i4, <span class="keyword">int</span> i5, <span class="keyword">int</span> i6, <span class="keyword">int</span> i7, <span class="keyword">int</span> i8)</span> </span>&#123;</div><div class="line">...</div><div class="line">           <span class="keyword">if</span>(THUMBNAIL == -<span class="number">1</span>) &#123;</div><div class="line">               THUMBNAIL = contentView.getHeight();</div><div class="line">           &#125;</div><div class="line"></div><div class="line">           <span class="keyword">if</span>(FULLSIZE == -<span class="number">1</span>) &#123;</div><div class="line">               FULLSIZE = THUMBNAIL + getTextViewHeight(descriptions) - descriptions.getHeight();</div><div class="line">           &#125;</div><div class="line">           ...</div><div class="line">       &#125;</div><div class="line">   &#125;);</div></pre></td></tr></table></figure></p>
+<p>布局刚展示时，contentView的高度就是收缩时的高度。收缩时的高度加上TextView展开和收缩时的高度差即为展开时的contentView高度。这里的核心函数getTextViewHeight用于获取文字全部展开TextView的高度，其核心代码如下。这部分代码把TextView高度的计算分为两部分，文字高度desired和边距padding。getLineTop(n)函数返回第ｎ行顶端的位置，当n为行数时，为最后一行底部的位置。这里写成layout.getLineTop(pTextView.getLineCount())- layout.getLineTop(0)更好理解一些。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">getTextViewHeight</span><span class="params">(TextView pTextView)</span> </span>&#123;</div><div class="line">    Layout layout = pTextView.getLayout();</div><div class="line">    <span class="keyword">int</span> desired = layout.getLineTop(pTextView.getLineCount());</div><div class="line">    <span class="keyword">int</span> padding = pTextView.getCompoundPaddingTop() + pTextView.getCompoundPaddingBottom();</div><div class="line">    <span class="keyword">return</span> desired + padding;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后，在设置showDetailButton监听器时，增加展开和收缩的代码<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">showDetailButton.setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View view)</span> </span>&#123;</div><div class="line"></div><div class="line">        <span class="keyword">if</span>(currentLines == LIMIT) &#123;</div><div class="line">            expand(contentView, THUMBNAIL, FULLSIZE);</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            expand(contentView, FULLSIZE, THUMBNAIL);</div><div class="line">        &#125;</div><div class="line">        ...</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure></p>
+<p>至此，对这个展开效果的优化结束，完整的代码在<a href="https://github.com/archieyang/FlipDesc" target="_blank" rel="external">这里</a>。</p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/04/20/android-fold-textview/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/04/20/android-fold-textview/&text=实现画卷式展开的TextView"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/04/20/android-fold-textview/&is_video=false&description=实现画卷式展开的TextView"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=实现画卷式展开的TextView&body=Check out this article: http://codethink.me/2015/04/20/android-fold-textview/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/04/20/android-fold-textview/&title=实现画卷式展开的TextView"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/04/20/android-fold-textview/&name=实现画卷式展开的TextView&description=&lt;p&gt;#0. 前言&lt;/p&gt;
+&lt;p&gt;上周朋友拿美团外卖客户端的店铺页面，问我顶部文字详情展开的实现方式，这个效果本身就是一个已经有maxline设置的TextView展开的实现，但是没有对控件的跳变做更多的处理，感觉体验不是很好。于是我先仿写一个类似效果，又在原来的基础上把跳变改成了动画，效果如图所示。&lt;br&gt;&lt;img src=&quot;/images/animated-flip-desc.gif&quot; alt=&quot;&quot;&gt;&lt;br&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

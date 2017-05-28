@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="#0.前言本文是Philm源码分析系列的第二篇，重点分析Philm MVP结构中View与Presenter的设计。为了便于分析，本文选取了Philm中最简单的部分About，这部分用于展示Philm的关于信息，不包含任何Model代码。 #1.绑定View和Presenter在Philm中，View由Fragment和Activity实现，由于应用启动时首先启动Activity,因此，绑定Pre">
+<meta name="keywords" content="Android,MVP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Philm项目源码分解析(2): View与Presenter的设计">
+<meta property="og:url" content="http://codethink.me/2015/03/27/philm-source-code-analysis-2/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="#0.前言本文是Philm源码分析系列的第二篇，重点分析Philm MVP结构中View与Presenter的设计。为了便于分析，本文选取了Philm中最简单的部分About，这部分用于展示Philm的关于信息，不包含任何Model代码。 #1.绑定View和Presenter在Philm中，View由Fragment和Activity实现，由于应用启动时首先启动Activity,因此，绑定Pre">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Philm项目源码分解析(2): View与Presenter的设计">
+<meta name="twitter:description" content="#0.前言本文是Philm源码分析系列的第二篇，重点分析Philm MVP结构中View与Presenter的设计。为了便于分析，本文选取了Philm中最简单的部分About，这部分用于展示Philm的关于信息，不包含任何Model代码。 #1.绑定View和Presenter在Philm中，View由Fragment和Activity实现，由于应用启动时首先启动Activity,因此，绑定Pre">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Philm项目源码分解析(2): View与Presenter的设计</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2015/03/27/philm-source-code-analysis-3/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2015/03/26/philm-source-code-analysis-1/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/03/27/philm-source-code-analysis-2/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&text=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&is_video=false&description=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Philm项目源码分解析(2): View与Presenter的设计&body=Check out this article: http://codethink.me/2015/03/27/philm-source-code-analysis-2/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&name=Philm项目源码分解析(2): View与Presenter的设计&description=&lt;p&gt;#0.前言&lt;br&gt;本文是Philm源码分析系列的第二篇，重点分析Philm MVP结构中View与Presenter的设计。为了便于分析，本文选取了Philm中最简单的部分About，这部分用于展示Philm的关于信息，不包含任何Model代码。&lt;/p&gt;
+&lt;p&gt;#1.绑定View和Presenter&lt;br&gt;在Philm中，View由Fragment和Activity实现，由于应用启动时首先启动Activity,因此，绑定Presenter的工作要在View中进行（也就是Activity/Fragment）。Philm在AboutFragment的onResume方法和onPause方法中进行View与Presenter的绑定与解绑。具体代码如下：&lt;br&gt;&lt;figure class=&quot;highlight java&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;5&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;6&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;7&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;8&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;9&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;10&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;11&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;12&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;13&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;14&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;15&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;16&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;17&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;18&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;AboutFragment&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;ListFragment&lt;/span&gt;&amp;lt;&lt;span class=&quot;title&quot;&gt;ListView&lt;/span&gt;&amp;gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;AboutController&lt;/span&gt;.&lt;span class=&quot;title&quot;&gt;AboutListUi&lt;/span&gt; &amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    ...&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;meta&quot;&gt;@Override&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;onResume&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;()&lt;/span&gt; &lt;/span&gt;&amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;super&lt;/span&gt;.onResume();&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        getController().attachUi(&lt;span class=&quot;keyword&quot;&gt;this&lt;/span&gt;);&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &amp;#125;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;meta&quot;&gt;@Override&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;onPause&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;()&lt;/span&gt; &lt;/span&gt;&amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        getController().detachUi(&lt;span class=&quot;keyword&quot;&gt;this&lt;/span&gt;);&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;super&lt;/span&gt;.onPause();&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &amp;#125;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    ...&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&amp;#125;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;对于Philm的About部分，它的Presenter就是MainController中的AboutController（是的，Chris Banes将Presenter命名为了Controller）。&lt;br&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Philm项目源码分解析(2): View与Presenter的设计
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2015-03-27T10:46:13.000Z" itemprop="datePublished">2015-03-27</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Android/">Android</a>, <a class="tag-link" href="/tags/MVP/">MVP</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>#0.前言<br>本文是Philm源码分析系列的第二篇，重点分析Philm MVP结构中View与Presenter的设计。为了便于分析，本文选取了Philm中最简单的部分About，这部分用于展示Philm的关于信息，不包含任何Model代码。</p>
+<p>#1.绑定View和Presenter<br>在Philm中，View由Fragment和Activity实现，由于应用启动时首先启动Activity,因此，绑定Presenter的工作要在View中进行（也就是Activity/Fragment）。Philm在AboutFragment的onResume方法和onPause方法中进行View与Presenter的绑定与解绑。具体代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AboutFragment</span> <span class="keyword">extends</span> <span class="title">ListFragment</span>&lt;<span class="title">ListView</span>&gt;</span></div><div class="line">        <span class="keyword">implements</span> <span class="title">AboutController</span>.<span class="title">AboutListUi</span> &#123;</div><div class="line">    ...</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResume</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>.onResume();</div><div class="line">        getController().attachUi(<span class="keyword">this</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onPause</span><span class="params">()</span> </span>&#123;</div><div class="line">        getController().detachUi(<span class="keyword">this</span>);</div><div class="line">        <span class="keyword">super</span>.onPause();</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div></pre></td></tr></table></figure></p>
+<p>对于Philm的About部分，它的Presenter就是MainController中的AboutController（是的，Chris Banes将Presenter命名为了Controller）。<br><a id="more"></a></p>
+<p>#2.设置回调<br>下面来看Presenter(BaseUiController)中attachUi的实现：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseUiController</span>&lt;<span class="title">U</span> <span class="keyword">extends</span> <span class="title">BaseUiController</span>.<span class="title">Ui</span>&lt;<span class="title">UC</span>&gt;, <span class="title">UC</span>&gt;</span></div><div class="line">        <span class="keyword">extends</span> <span class="title">BaseController</span> &#123;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Ui</span>&lt;<span class="title">UC</span>&gt; </span>&#123;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">void</span> <span class="title">setCallbacks</span><span class="params">(UC callbacks)</span></span>;</div><div class="line"></div><div class="line">        <span class="function"><span class="keyword">boolean</span> <span class="title">isModal</span><span class="params">()</span></span>;</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">attachUi</span><span class="params">(U ui)</span> </span>&#123;</div><div class="line">        Preconditions.checkArgument(ui != <span class="keyword">null</span>, <span class="string">"ui cannot be null"</span>);</div><div class="line">        Preconditions.checkState(!mUis.contains(ui), <span class="string">"UI is already attached"</span>);</div><div class="line"></div><div class="line">        mUis.add(ui);</div><div class="line"></div><div class="line">        ui.setCallbacks(createUiCallbacks(ui));</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (isInited()) &#123;</div><div class="line">            <span class="keyword">if</span> (!ui.isModal() &amp;&amp; !(ui <span class="keyword">instanceof</span> SubUi)) &#123;</div><div class="line">                updateDisplayTitle(getUiTitle(ui));</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            onUiAttached(ui);</div><div class="line">            populateUi(ui);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure><br>这里最重要的两处代码是1）通过ui.setCallbacks(createUiCallbacks(ui))设置回调；和2）绘制Ui populateUi(ui)。</p>
+<p>Philm在设置View回调是采用了一个非常精巧的设计：通过泛型来处理ViewInterface与回调。BaseUiController的泛型可以表示为BaseUiController<viewinterface<viewcallbacks>, ViewCallbacs&gt;，其中前一个泛型代表了前文所述用于解耦View和Presenter而实现的ViewInterface，而后一个是提供给ViewInterface的回调。ViewInterface本身提供了setCallbacks方法来进行ViewCallbacks与View的绑定。这样，所有的业务逻辑都可以在Presenter中实现，之后通过回调提供给View。View仅仅负责UI的表现，在需要处理业务逻辑时，通过调用之前Presenter设置的回调实现。</viewinterface<viewcallbacks></p>
+<p>这里可以看一下About中响应List中某个item被点击的实现。这里onListItemClick继承自ListFragment<listview>，用于响应某个item的点击事件，AboutFragment将这个事件交给了Presenter设置的回调来处理。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AboutFragment</span> <span class="keyword">extends</span> <span class="title">ListFragment</span>&lt;<span class="title">ListView</span>&gt;</span></div><div class="line">        <span class="keyword">implements</span> <span class="title">AboutController</span>.<span class="title">AboutListUi</span> &#123;</div><div class="line">    ...</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onListItemClick</span><span class="params">(ListView l, View v, <span class="keyword">int</span> position, <span class="keyword">long</span> id)</span> </span>&#123;</div><div class="line">        AboutController.AboutItem item = (AboutController.AboutItem) l.getItemAtPosition(position);</div><div class="line">        <span class="keyword">if</span> (item != <span class="keyword">null</span> &amp;&amp; hasCallbacks()) &#123;</div><div class="line">            getCallbacks().onItemClick(item);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">&#125;</div><div class="line"></div></pre></td></tr></table></figure></listview></p>
+<p>#3.Display<br>这是Philm中一处比较新颖的设计，它本身应该算是Presenter的一部分，具体的实现在AndroidDisplay这个类中。它的作用是负责app中<strong>所有</strong>UI切换的工作，比如Activity跳转，现实Fragment，弹出Drawer等。听起来很不可以思议，但是由于这些代码都很短小，实际上这个类并不大，也不复杂。</p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/03/27/philm-source-code-analysis-2/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&text=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&is_video=false&description=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Philm项目源码分解析(2): View与Presenter的设计&body=Check out this article: http://codethink.me/2015/03/27/philm-source-code-analysis-2/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&title=Philm项目源码分解析(2): View与Presenter的设计"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/03/27/philm-source-code-analysis-2/&name=Philm项目源码分解析(2): View与Presenter的设计&description=&lt;p&gt;#0.前言&lt;br&gt;本文是Philm源码分析系列的第二篇，重点分析Philm MVP结构中View与Presenter的设计。为了便于分析，本文选取了Philm中最简单的部分About，这部分用于展示Philm的关于信息，不包含任何Model代码。&lt;/p&gt;
+&lt;p&gt;#1.绑定View和Presenter&lt;br&gt;在Philm中，View由Fragment和Activity实现，由于应用启动时首先启动Activity,因此，绑定Presenter的工作要在View中进行（也就是Activity/Fragment）。Philm在AboutFragment的onResume方法和onPause方法中进行View与Presenter的绑定与解绑。具体代码如下：&lt;br&gt;&lt;figure class=&quot;highlight java&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;5&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;6&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;7&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;8&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;9&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;10&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;11&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;12&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;13&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;14&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;15&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;16&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;17&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;18&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;AboutFragment&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;ListFragment&lt;/span&gt;&amp;lt;&lt;span class=&quot;title&quot;&gt;ListView&lt;/span&gt;&amp;gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;AboutController&lt;/span&gt;.&lt;span class=&quot;title&quot;&gt;AboutListUi&lt;/span&gt; &amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    ...&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;meta&quot;&gt;@Override&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;onResume&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;()&lt;/span&gt; &lt;/span&gt;&amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;super&lt;/span&gt;.onResume();&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        getController().attachUi(&lt;span class=&quot;keyword&quot;&gt;this&lt;/span&gt;);&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &amp;#125;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;meta&quot;&gt;@Override&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;onPause&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;()&lt;/span&gt; &lt;/span&gt;&amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        getController().detachUi(&lt;span class=&quot;keyword&quot;&gt;this&lt;/span&gt;);&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;super&lt;/span&gt;.onPause();&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &amp;#125;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    ...&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&amp;#125;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;对于Philm的About部分，它的Presenter就是MainController中的AboutController（是的，Chris Banes将Presenter命名为了Controller）。&lt;br&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

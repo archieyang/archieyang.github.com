@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="#0. 前言本文是Philm源码分析系列的第三篇，重点分析Philm MVP结构中Presenter与Model的设计。本文选取了Philm中核心的部分Movie作为示例。 #1.Philm中的ModelPhilm中的Model通过State来管理，具体到Movie中，MovieController中包含一个对于MoviesState的引用。而State的实现在ApplicationState中，">
+<meta name="keywords" content="Android,MVP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Philm项目源码分解析(3): Presenter与Model的设计">
+<meta property="og:url" content="http://codethink.me/2015/03/27/philm-source-code-analysis-3/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="#0. 前言本文是Philm源码分析系列的第三篇，重点分析Philm MVP结构中Presenter与Model的设计。本文选取了Philm中核心的部分Movie作为示例。 #1.Philm中的ModelPhilm中的Model通过State来管理，具体到Movie中，MovieController中包含一个对于MoviesState的引用。而State的实现在ApplicationState中，">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Philm项目源码分解析(3): Presenter与Model的设计">
+<meta name="twitter:description" content="#0. 前言本文是Philm源码分析系列的第三篇，重点分析Philm MVP结构中Presenter与Model的设计。本文选取了Philm中核心的部分Movie作为示例。 #1.Philm中的ModelPhilm中的Model通过State来管理，具体到Movie中，MovieController中包含一个对于MoviesState的引用。而State的实现在ApplicationState中，">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Philm项目源码分解析(3): Presenter与Model的设计</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2015/04/20/android-fold-textview/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2015/03/27/philm-source-code-analysis-2/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/03/27/philm-source-code-analysis-3/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&text=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&is_video=false&description=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Philm项目源码分解析(3): Presenter与Model的设计&body=Check out this article: http://codethink.me/2015/03/27/philm-source-code-analysis-3/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&name=Philm项目源码分解析(3): Presenter与Model的设计&description=&lt;p&gt;#0. 前言&lt;br&gt;本文是Philm源码分析系列的第三篇，重点分析Philm MVP结构中Presenter与Model的设计。本文选取了Philm中核心的部分Movie作为示例。&lt;/p&gt;
+&lt;p&gt;#1.Philm中的Model&lt;br&gt;Philm中的Model通过State来管理，具体到Movie中，MovieController中包含一个对于MoviesState的引用。而State的实现在ApplicationState中，与第二篇提到的AndroidDisplay类似，ApplicationState是一个包含了所有Model总和的类。&lt;br&gt;&lt;figure class=&quot;highlight java&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;ApplicationState&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;BaseState&lt;/span&gt;, &lt;span class=&quot;title&quot;&gt;MoviesState&lt;/span&gt;, &lt;span class=&quot;title&quot;&gt;UserState&lt;/span&gt; &lt;/span&gt;&amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;	...&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&amp;#125;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;br&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Philm项目源码分解析(3): Presenter与Model的设计
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2015-03-27T14:20:31.000Z" itemprop="datePublished">2015-03-27</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Android/">Android</a>, <a class="tag-link" href="/tags/MVP/">MVP</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>#0. 前言<br>本文是Philm源码分析系列的第三篇，重点分析Philm MVP结构中Presenter与Model的设计。本文选取了Philm中核心的部分Movie作为示例。</p>
+<p>#1.Philm中的Model<br>Philm中的Model通过State来管理，具体到Movie中，MovieController中包含一个对于MoviesState的引用。而State的实现在ApplicationState中，与第二篇提到的AndroidDisplay类似，ApplicationState是一个包含了所有Model总和的类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ApplicationState</span> <span class="keyword">implements</span> <span class="title">BaseState</span>, <span class="title">MoviesState</span>, <span class="title">UserState</span> </span>&#123;</div><div class="line">	...</div><div class="line">&#125;</div><div class="line"></div></pre></td></tr></table></figure><br><a id="more"></a></p>
+<p>#2.Presenter与Model的设计</p>
+<p>##2.1 View -&gt; Presenter -&gt; Model<br>我们从一次搜索的过程来介绍各个部分的通信。SearchFragment中，mSearchView设置了一个对于搜索文本的监听器，当进行搜索时需要调用Presenter注册的回调MovieController.MovieUiCallbacks的search方法(注册回调在SearchFragment的父类BasePhilmMovieFragment中)。至此，View接受用户输入的流程结束。</p>
+<p>在SearchFragment的父类BasePhilmMovieFragment中调用attachUi挂载到MovieController并在MovieController中被设置了MovieController.MovieUiCallbacks回调。</p>
+<p>响应点击事件业务逻辑的MovieController.MovieUiCallbacks的search方法在MovieController(也就是Presenter)中实现。search通过ui.getMovieQueryType()拿到具体搜索的类型，之后通过fetchMovieSearchResults进行搜索。搜索最后通过FetchTmdbSearchMoviesRunnable类实现，在获取到搜索结果后，通过mMoviesState.setSearchResult(searchResult)更新Model。</p>
+<p>##2.2 Model -&gt; Presenter -&gt; View<br>Model的数据被更新后，需要通过Presenter(MovieController)来更新View（Model与View不能直接通信）。Philm通知Presenter的方式是通过时间总线来实现的。这里使用的是<a href="http://square.github.io/otto/" target="_blank" rel="external">Square的otto</a>。可以看到setSearchResult中，除了将mSearchResult更新为获取的数据外，还向事件总线发送了一个SearchResultChangedEvent事件。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ApplicationState</span> <span class="keyword">implements</span> <span class="title">BaseState</span>, <span class="title">MoviesState</span>, <span class="title">UserState</span> </span>&#123;</div><div class="line">    ...</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSearchResult</span><span class="params">(SearchResult result)</span> </span>&#123;</div><div class="line">        mSearchResult = result;</div><div class="line">        mEventBus.post(<span class="keyword">new</span> SearchResultChangedEvent());</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">&#125;</div><div class="line"></div></pre></td></tr></table></figure>
+<p>在MovieController中，通过@Subscribe以及一个有唯一SearchResultChangedEvent的方法来接收SearchResultChangedEvent事件，最后通过populateUisFromQueryTypes更新UI。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MovieController</span> <span class="keyword">extends</span> <span class="title">BaseUiController</span>&lt;<span class="title">MovieController</span>.<span class="title">MovieUi</span>,</span></div><div class="line">        <span class="title">MovieController</span>.<span class="title">MovieUiCallbacks</span>&gt; &#123;</div><div class="line">    ...</div><div class="line">    <span class="meta">@Subscribe</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSearchResultChanged</span><span class="params">(MoviesState.SearchResultChangedEvent event)</span> </span>&#123;</div><div class="line">        populateUisFromQueryTypes(MovieQueryType.SEARCH, MovieQueryType.SEARCH_MOVIES,</div><div class="line">                MovieQueryType.SEARCH_PEOPLE);</div><div class="line">    &#125;</div><div class="line">    ...</div><div class="line">&#125;</div><div class="line"></div></pre></td></tr></table></figure></p>
+<p>#3.最后<br>本文是Philm MVP模式分析系列的最后一篇。Philm中除了MVP模式，还有很多值得分析的地方，比如对依赖注入的使用等等，之后如果有时间会针对Philm的其他部分进行更为细致的研究。</p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/03/27/philm-source-code-analysis-3/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&text=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&is_video=false&description=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Philm项目源码分解析(3): Presenter与Model的设计&body=Check out this article: http://codethink.me/2015/03/27/philm-source-code-analysis-3/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&title=Philm项目源码分解析(3): Presenter与Model的设计"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/03/27/philm-source-code-analysis-3/&name=Philm项目源码分解析(3): Presenter与Model的设计&description=&lt;p&gt;#0. 前言&lt;br&gt;本文是Philm源码分析系列的第三篇，重点分析Philm MVP结构中Presenter与Model的设计。本文选取了Philm中核心的部分Movie作为示例。&lt;/p&gt;
+&lt;p&gt;#1.Philm中的Model&lt;br&gt;Philm中的Model通过State来管理，具体到Movie中，MovieController中包含一个对于MoviesState的引用。而State的实现在ApplicationState中，与第二篇提到的AndroidDisplay类似，ApplicationState是一个包含了所有Model总和的类。&lt;br&gt;&lt;figure class=&quot;highlight java&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;ApplicationState&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;BaseState&lt;/span&gt;, &lt;span class=&quot;title&quot;&gt;MoviesState&lt;/span&gt;, &lt;span class=&quot;title&quot;&gt;UserState&lt;/span&gt; &lt;/span&gt;&amp;#123;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;	...&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&amp;#125;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;br&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

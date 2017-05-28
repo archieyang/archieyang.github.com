@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="##基于原型的继承之前说过，我觉JavaScript最优秀的特性在于它提供了first-class function，但是它最有特点的特性应该是原型继承了。许多函数式编程语言都提供了first-class function，而原型继承现在常见的编程语言中只有JavaScript还在使用。 我们常见的继承都是基于类的继承，对象是类的实例，一个类可以从另一个类继承，从而实现代码的复用。在发现JavaS">
+<meta name="keywords" content="JavaScript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Smashing JavaScript: 对象和原型继承">
+<meta property="og:url" content="http://codethink.me/2013/12/25/javascript-prototype/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="##基于原型的继承之前说过，我觉JavaScript最优秀的特性在于它提供了first-class function，但是它最有特点的特性应该是原型继承了。许多函数式编程语言都提供了first-class function，而原型继承现在常见的编程语言中只有JavaScript还在使用。 我们常见的继承都是基于类的继承，对象是类的实例，一个类可以从另一个类继承，从而实现代码的复用。在发现JavaS">
+<meta property="og:image" content="http://codethink.me/images/basic-object.png">
+<meta property="og:image" content="http://codethink.me/images/prototype-chain.png">
+<meta property="og:image" content="http://codethink.me/images/constructor-proto-chain.png">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Smashing JavaScript: 对象和原型继承">
+<meta name="twitter:description" content="##基于原型的继承之前说过，我觉JavaScript最优秀的特性在于它提供了first-class function，但是它最有特点的特性应该是原型继承了。许多函数式编程语言都提供了first-class function，而原型继承现在常见的编程语言中只有JavaScript还在使用。 我们常见的继承都是基于类的继承，对象是类的实例，一个类可以从另一个类继承，从而实现代码的复用。在发现JavaS">
+<meta name="twitter:image" content="http://codethink.me/images/basic-object.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Smashing JavaScript: 对象和原型继承</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2013/12/26/execution-context/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2013/12/24/javascript-history/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2013/12/25/javascript-prototype/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2013/12/25/javascript-prototype/&text=Smashing JavaScript: 对象和原型继承"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2013/12/25/javascript-prototype/&is_video=false&description=Smashing JavaScript: 对象和原型继承"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Smashing JavaScript: 对象和原型继承&body=Check out this article: http://codethink.me/2013/12/25/javascript-prototype/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2013/12/25/javascript-prototype/&name=Smashing JavaScript: 对象和原型继承&description=&lt;p&gt;##基于原型的继承&lt;br&gt;之前说过，我觉JavaScript最优秀的特性在于它提供了first-class function，但是它最有特点的特性应该是原型继承了。许多函数式编程语言都提供了first-class function，而原型继承现在常见的编程语言中只有JavaScript还在使用。&lt;/p&gt;
+&lt;p&gt;我们常见的继承都是基于类的继承，对象是类的实例，一个类可以从另一个类继承，从而实现代码的复用。在发现JavaScript基于原型继承的方法后，我的第一反映是：这还是面向对象吗。当然是，面向对象的名字中包含的是对象，它并不是面向类。实际上类只是对象的一个抽象，既然类最终都是要用来建立对象的，那不如就直接让对象继承对象，这也就是另一种继承的实现方式：基于原型的继承。&lt;/p&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Smashing JavaScript: 对象和原型继承
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2013-12-25T13:10:41.000Z" itemprop="datePublished">2013-12-25</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/JavaScript/">JavaScript</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>##基于原型的继承<br>之前说过，我觉JavaScript最优秀的特性在于它提供了first-class function，但是它最有特点的特性应该是原型继承了。许多函数式编程语言都提供了first-class function，而原型继承现在常见的编程语言中只有JavaScript还在使用。</p>
+<p>我们常见的继承都是基于类的继承，对象是类的实例，一个类可以从另一个类继承，从而实现代码的复用。在发现JavaScript基于原型继承的方法后，我的第一反映是：这还是面向对象吗。当然是，面向对象的名字中包含的是对象，它并不是面向类。实际上类只是对象的一个抽象，既然类最终都是要用来建立对象的，那不如就直接让对象继承对象，这也就是另一种继承的实现方式：基于原型的继承。</p>
+<a id="more"></a>
+<p>##原型是什么<br>原型实际上是对象的一个隐式的属性，在对象内部通过[[Prototype]]这个属性来表示其原型。在下文的图中，将用__proto__来表示这个属性。<br>原型究竟是怎么样一种关系？看下面这个例子，foo作为一个对象，拥有两个自有属性x和y，同时它还具有一个隐式的__proto__属性，这个属性指向的就是foo对象的原型。为什么要生成原型这个属性？在回答这个问题之前，我们需要了解下原型链。<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> foo = &#123;</div><div class="line">  <span class="attr">x</span>: <span class="number">10</span>,</div><div class="line">  <span class="attr">y</span>: <span class="number">20</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p><img src="/images/basic-object.png" alt=""></p>
+<p>##原型链<br>原型对象（一个对象原型属性所指向的对象）和普通的对象没有区别，他们也拥有自己的自有属性。一个对象的原型属性指向其原型对象，而其原型对象的原型属性指向其原型对象的原型对象，这样一直下去，就形成了一条原型链。</p>
+<blockquote>
+<p>原型链是用于实现继承和属性共享的由有限个对象组成的对象链。</p>
+</blockquote>
+<p>考虑这样一种情况，我们需要两个对象，a和b，他们只有很少一部分是不同的，我们需要通过继承来复用他们相同部分的代码。JavaScript中没有类型的概念，所以需要通过原型链来实现继承，从某种程度上说，这种继承方式更加灵活。这种继承方式也被称为基于委托的继承。看下面这段代码，对象a中存储了b和c中相同的部分，而b和c只需要存储他们独有的部分。<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a = &#123;</div><div class="line">  <span class="attr">x</span>: <span class="number">10</span>,</div><div class="line">  <span class="attr">calculate</span>: <span class="function"><span class="keyword">function</span> (<span class="params">z</span>) </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.x + <span class="keyword">this</span>.y + z</div><div class="line">  &#125;</div><div class="line">&#125;;</div><div class="line"> </div><div class="line"><span class="keyword">var</span> b = &#123;</div><div class="line">  <span class="attr">y</span>: <span class="number">20</span>,</div><div class="line">  <span class="attr">__proto__</span>: a</div><div class="line">&#125;;</div><div class="line"> </div><div class="line"><span class="keyword">var</span> c = &#123;</div><div class="line">  <span class="attr">y</span>: <span class="number">30</span>,</div><div class="line">  <span class="attr">__proto__</span>: a</div><div class="line">&#125;;</div><div class="line"> </div><div class="line"><span class="comment">// call the inherited method</span></div><div class="line">b.calculate(<span class="number">30</span>); <span class="comment">// 60</span></div><div class="line">c.calculate(<span class="number">40</span>); <span class="comment">// 80</span></div></pre></td></tr></table></figure></p>
+<p>看起来非常简单不是吗？我们发现b和c能够使用a中定义的calculate方法，这正是通过原型链实现的。</p>
+<p>原型继承的规则很简单：如果对象在自己的自有属性中没有找到某个属性活方法，那么它就会尝试到原型链中寻找这个属性或者方法。如果仍然没找到，那么它会继续到其原型对象的原型对象中寻找，如此继续下去，直到找遍整个原型链。在寻找过程中，第一个被找到的名字符合的属性或方法会被使用，而寻找也就此停止。被找到的属性被称为继承属性，如果找遍整个原型链仍然没有找到符合的属性或方法，那将反悔undefined。</p>
+<p>需要注意的是，在一个继承函数中的this值指向的是原来的对象，而不是包含该函数的（原型）对象。例如，上面程序中的this.y来自对象b和c，而不是a，这就验证了this指向的是原来的对象b和c。而this.x通过原型链获取到了a中x的值。</p>
+<p>如果没有指定一个对象的原型，那么默认的__proto__指向Object.prototype。而Object.prototype自己仍然有一个__proto__属性，它指向null。</p>
+<p>下图表示了对象a,b,c的继承关系：</p>
+<p><img src="/images/prototype-chain.png" alt=""></p>
+<p>注意，ES5标准化了一种采用Object.create函数的方式来实现基于原型的继承：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> b = <span class="built_in">Object</span>.create(a, &#123;<span class="attr">y</span>: &#123;<span class="attr">value</span>: <span class="number">20</span>&#125;&#125;);</div><div class="line"><span class="keyword">var</span> c = <span class="built_in">Object</span>.create(a, &#123;<span class="attr">y</span>: &#123;<span class="attr">value</span>: <span class="number">30</span>&#125;&#125;);</div></pre></td></tr></table></figure><br>ES6标准化了__proto__属性，它可以被用来初始化对象。</p>
+<p>##蹩脚的/识时务的构造函数<br>Douglas Crockford在JavaScript: The Good Parts中认为JavaScript的构造函数掩盖了它原型继承的机制，是一个多余的中间层。JavaScript的构造函数是一个见仁见智的问题，它的确给从其他主流语言过度到JavaScript的程序员带来的亲切感，而且从发展趋势看，ES6中甚至引入了class，但就我个人而言，我觉得这种设计确实有些多余，一方面学习原型继承并不难理解，另一方面引入class无疑又增加了JavaScript语言的复杂程度。<br>构造函数可以创建指定形式的对象，同时自动为其设置原型对象。这个原型对象存储在构造函数的prototype属性中。<br>我们以构造函数的形式重写上面对象b，c从a继承属性和函数的例子如下：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// a constructor function</span></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">Foo</span>(<span class="params">y</span>) </span>&#123;</div><div class="line">  <span class="comment">// which may create objects</span></div><div class="line">  <span class="comment">// by specified pattern: they have after</span></div><div class="line">  <span class="comment">// creation own "y" property</span></div><div class="line">  <span class="keyword">this</span>.y = y;</div><div class="line">&#125;</div><div class="line"> </div><div class="line"><span class="comment">// also "Foo.prototype" stores reference</span></div><div class="line"><span class="comment">// to the prototype of newly created objects,</span></div><div class="line"><span class="comment">// so we may use it to define shared/inherited</span></div><div class="line"><span class="comment">// properties or methods, so the same as in</span></div><div class="line"><span class="comment">// previous example we have:</span></div><div class="line"> </div><div class="line"><span class="comment">// inherited property "x"</span></div><div class="line">Foo.prototype.x = <span class="number">10</span>;</div><div class="line"> </div><div class="line"><span class="comment">// and inherited method "calculate"</span></div><div class="line">Foo.prototype.calculate = <span class="function"><span class="keyword">function</span> (<span class="params">z</span>) </span>&#123;</div><div class="line">  <span class="keyword">return</span> <span class="keyword">this</span>.x + <span class="keyword">this</span>.y + z;</div><div class="line">&#125;;</div><div class="line"> </div><div class="line"><span class="comment">// now create our "b" and "c"</span></div><div class="line"><span class="comment">// objects using "pattern" Foo</span></div><div class="line"><span class="keyword">var</span> b = <span class="keyword">new</span> Foo(<span class="number">20</span>);</div><div class="line"><span class="keyword">var</span> c = <span class="keyword">new</span> Foo(<span class="number">30</span>);</div><div class="line"> </div><div class="line"><span class="comment">// call the inherited method</span></div><div class="line">b.calculate(<span class="number">30</span>); <span class="comment">// 60</span></div><div class="line">c.calculate(<span class="number">40</span>); <span class="comment">// 80</span></div><div class="line"> </div><div class="line"><span class="comment">// let's show that we reference</span></div><div class="line"><span class="comment">// properties we expect</span></div><div class="line"> </div><div class="line"><span class="built_in">console</span>.log(</div><div class="line"> </div><div class="line">  b.__proto__ === Foo.prototype, <span class="comment">// true</span></div><div class="line">  c.__proto__ === Foo.prototype, <span class="comment">// true</span></div><div class="line"> </div><div class="line">  <span class="comment">// also "Foo.prototype" automatically creates</span></div><div class="line">  <span class="comment">// a special property "constructor", which is a</span></div><div class="line">  <span class="comment">// reference to the constructor function itself;</span></div><div class="line">  <span class="comment">// instances "b" and "c" may found it via</span></div><div class="line">  <span class="comment">// delegation and use to check their constructor</span></div><div class="line"> </div><div class="line">  b.constructor === Foo, <span class="comment">// true</span></div><div class="line">  c.constructor === Foo, <span class="comment">// true</span></div><div class="line">  Foo.prototype.constructor === Foo <span class="comment">// true</span></div><div class="line"> </div><div class="line">  b.calculate === b.__proto__.calculate, <span class="comment">// true</span></div><div class="line">  b.__proto__.calculate === Foo.prototype.calculate <span class="comment">// true</span></div><div class="line"> </div><div class="line">);</div></pre></td></tr></table></figure></p>
+<p>代码对应的关系如下图所示：</p>
+<p><img src="/images/constructor-proto-chain.png" alt=""></p>
+<p>从图中我们发现：如我们前面所述，每一个对象都有自己的原型。甚至构造函数Foo也有自己的__proto__，它指向的是Function.prototype。而Function.prototype的__proto__属性又指向了Object.prototype。而Foo的prototype属性只是它自身一个普通的属性，唯一特殊的在于它指定了有Foo创建的对象b和c的原型。</p>
+<p>如果从形式上讨论类或者分类这个概念，那么构造函数和原型对象的合起来应该被称作一个类。实际上，Python的一阶动态类属性和方法解析的实现与此完全相同。从这个角度看，Python的类只是一种语法糖，它的实质和JavaScript中基于委托的继承相同。</p>
+<p>注意：ES6中类的概念被标准化了，并且在构造函数之上实现了如前文描述的语法糖。从这个角度看，<strong>原型链成为了基于类型继承的实现细节。</strong></p>
+<p>###参考资料<br><a href="http://dmitrysoshnikov.com/ecmascript/javascript-the-core/" target="_blank" rel="external">ECMA-262 JavaScript. The core</a></p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2013/12/25/javascript-prototype/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2013/12/25/javascript-prototype/&text=Smashing JavaScript: 对象和原型继承"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2013/12/25/javascript-prototype/&is_video=false&description=Smashing JavaScript: 对象和原型继承"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Smashing JavaScript: 对象和原型继承&body=Check out this article: http://codethink.me/2013/12/25/javascript-prototype/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2013/12/25/javascript-prototype/&title=Smashing JavaScript: 对象和原型继承"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2013/12/25/javascript-prototype/&name=Smashing JavaScript: 对象和原型继承&description=&lt;p&gt;##基于原型的继承&lt;br&gt;之前说过，我觉JavaScript最优秀的特性在于它提供了first-class function，但是它最有特点的特性应该是原型继承了。许多函数式编程语言都提供了first-class function，而原型继承现在常见的编程语言中只有JavaScript还在使用。&lt;/p&gt;
+&lt;p&gt;我们常见的继承都是基于类的继承，对象是类的实例，一个类可以从另一个类继承，从而实现代码的复用。在发现JavaScript基于原型继承的方法后，我的第一反映是：这还是面向对象吗。当然是，面向对象的名字中包含的是对象，它并不是面向类。实际上类只是对象的一个抽象，既然类最终都是要用来建立对象的，那不如就直接让对象继承对象，这也就是另一种继承的实现方式：基于原型的继承。&lt;/p&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="##摘要##本文定义了描述符，阐述了它的规则并解释了描述符是如何被调用的。除此之外，本文还详细介绍了一般的描述符和一些Python内置的描述符（包括函数，属性property，静态方法和类方法）的实现。针对这些概念，作者给出了等价的纯Python实现和对应的示例代码。 了解描述符不仅会提供一个更大的工具集合，更会增加对Python工作机制及其优雅设计的理解。 ##定义及简介##通常，descrip">
+<meta name="keywords" content="Python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Descriptor Howto Guide 的翻译">
+<meta property="og:url" content="http://codethink.me/2013/03/18/decriptor-howto-guide/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="##摘要##本文定义了描述符，阐述了它的规则并解释了描述符是如何被调用的。除此之外，本文还详细介绍了一般的描述符和一些Python内置的描述符（包括函数，属性property，静态方法和类方法）的实现。针对这些概念，作者给出了等价的纯Python实现和对应的示例代码。 了解描述符不仅会提供一个更大的工具集合，更会增加对Python工作机制及其优雅设计的理解。 ##定义及简介##通常，descrip">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Descriptor Howto Guide 的翻译">
+<meta name="twitter:description" content="##摘要##本文定义了描述符，阐述了它的规则并解释了描述符是如何被调用的。除此之外，本文还详细介绍了一般的描述符和一些Python内置的描述符（包括函数，属性property，静态方法和类方法）的实现。针对这些概念，作者给出了等价的纯Python实现和对应的示例代码。 了解描述符不仅会提供一个更大的工具集合，更会增加对Python工作机制及其优雅设计的理解。 ##定义及简介##通常，descrip">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Descriptor Howto Guide 的翻译</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2013/11/25/destroy-object-in-js/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2013/03/17/block-access/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2013/03/18/decriptor-howto-guide/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&text=Descriptor Howto Guide 的翻译"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&is_video=false&description=Descriptor Howto Guide 的翻译"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Descriptor Howto Guide 的翻译&body=Check out this article: http://codethink.me/2013/03/18/decriptor-howto-guide/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&name=Descriptor Howto Guide 的翻译&description=&lt;p&gt;##摘要##&lt;br&gt;本文定义了描述符，阐述了它的规则并解释了描述符是如何被调用的。除此之外，本文还详细介绍了一般的描述符和一些Python内置的描述符（包括函数，属性property，静态方法和类方法）的实现。针对这些概念，作者给出了等价的纯Python实现和对应的示例代码。&lt;/p&gt;
+&lt;p&gt;了解描述符不仅会提供一个更大的工具集合，更会增加对Python工作机制及其优雅设计的理解。&lt;/p&gt;
+&lt;p&gt;##定义及简介##&lt;br&gt;通常，descriptor是指具有“绑定行为”的对象特性，这些特性的访问方法被descriptor规则中的方法重写了。这些方法包括__get__(), __set__()和__del__()。实现了其中任何一个方法的对象就被称为描述符（descriptor）。&lt;br&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Descriptor Howto Guide 的翻译
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2013-03-18T08:05:39.000Z" itemprop="datePublished">2013-03-18</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Python/">Python</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>##摘要##<br>本文定义了描述符，阐述了它的规则并解释了描述符是如何被调用的。除此之外，本文还详细介绍了一般的描述符和一些Python内置的描述符（包括函数，属性property，静态方法和类方法）的实现。针对这些概念，作者给出了等价的纯Python实现和对应的示例代码。</p>
+<p>了解描述符不仅会提供一个更大的工具集合，更会增加对Python工作机制及其优雅设计的理解。</p>
+<p>##定义及简介##<br>通常，descriptor是指具有“绑定行为”的对象特性，这些特性的访问方法被descriptor规则中的方法重写了。这些方法包括__get__(), __set__()和__del__()。实现了其中任何一个方法的对象就被称为描述符（descriptor）。<br><a id="more"></a></p>
+<p>特性（attribute）访问的基本行为是从一个对象的字典中获取（get），设置（set）或者删除特性。例如，a.x有这样一条查找链，它首先查找a.__dict__[‘x’]，然后查找type(a).__dict__[‘x’]，然后继续type(a)不包含metaclass的基类。如果查找到的值是一个定义了某个描述符方法的对象，那么Python就会重写默认的行为，转而调用描述的方法。这种替换发生的优先级取决于定义了那些描述符方法（data descriptor 还是non-data descriptor，后面有详细介绍）。注意，描述符只适用于新式的类和对象。</p>
+<p>描述符是一种十分强大且用途广泛的规则（protocol）。它是实现属性(properties)，方法，静态方法，类方法和super()函数背后的机制。它被Python用于实现新式类型（在2.2版本引入）。描述符简化了底层实现的C代码，并且为Python编程提供了一套更加灵活的工具。</p>
+<p>##描述符规则##<br>    descr.<strong>get</strong>(self, obj, type=None) –&gt; value<br>    descr.<strong>set</strong>(self, obj, value) –&gt; None<br>    descr.<strong>delete</strong>(self, obj) –&gt; None<br>这就是关于描述符的全部方法。定义了其中任意一个方法的对象就被称为描述符，它会在查找特性时，重写默认的行为。</p>
+<p>如果一个对象定义了__get__()和__set__()两个函数，它就被称为一个数据描述符。而只定义了__get__()函数的描述符被称为非数据描述符（他们通常被用于方法，当然也可以有其他的用途）。</p>
+<p>数据描述符和非数据描述符的不同在于他们重写的行为和实例字典中条目的关系。如果一个实例字典中的条目与一个数据描述符重名，那么优先返回的是数据描述符。如果一个实例字典中的条目与一个非数据描述符重名，那么优先返回实例字典中的条目。</p>
+<p>如果要创建一个只读的数据描述符，需要定义__get__()和__set()__两个函数，__set()__函数需要在被调用时抛出一个AttributeError异常。定义一个抛出异常的占位符的__set__()函数就可以使得描述符变为数据描述符。</p>
+<p>##描述符的调用##<br>一个描述符可以直接通过它的函数名被调用。例如，d.__get__(obj)。</p>
+<p>但是，通过属性访问来自动调用描述符的方法更为常见。例如，obj.d首先在obj的字典中查询d。如果d定义了__get__()方法，那么就会根据下面列出的优先级原则调用d.__get__(obj)。</p>
+<p>调用的细节取决于obj是一个对象还是一个类。不管哪种情况，描述符都只作用于新式的对象和类。一个类如果是object的子类，它就是新式的。</p>
+<p>对于对象而言，描述符的调用机制存在于object.__getattribute__()，它将b.x转换为type(b).__dict__[‘x’].__get__(b, type(b))。它的实现包含一个优先级链，在优先级链中，数据描述符具有高于实例变量的优先级，而实例变量具有高于非数据描述符的优先级，而__getattr__()被赋予了最低的优先级。完整的C语言实现可以再Object/object.c中的PyObject_GenericGetAttr()中找到。</p>
+<p>对于类型而言，描述符的调用机制存在于type.__getattribute__()中，它将B.x转化为B.__dict__[‘x’].__get__(None, B)。它的Python语言描述如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">__getattribute__</span><span class="params">(self, key)</span>:</span></div><div class="line">	<span class="string">"Emulate type_getattro() in Objects/typeobject.c"</span></div><div class="line">	v = object.__getattribute__(self, key)</div><div class="line">	<span class="keyword">if</span> hasattr(v, <span class="string">'__get__'</span>):</div><div class="line">		<span class="keyword">return</span> v.__get__(<span class="keyword">None</span>, self)</div><div class="line">	<span class="keyword">return</span> v</div></pre></td></tr></table></figure><br>这里需要注意的是</p>
+<p>描述符通过__getattribute__()方法被调用    重写__getattribute__()方法会阻止描述符的自动调用    __getattribute__()只存在于新式的类和对象中    object.__getattribute__()和type.__getattribute__()对于__get__()的调用不同    数据描述符会重写实例的字典    非数据描述符会被实例的字典重写<br>由super()函数返回的对象也具有一个普通的__getattribute__()方法来调用操作符。super(B, obj).m()搜索obj.__class__.__mro__来寻找B类型的直接的基类A，并返回A.__dict__[‘m’].__get__(obj, A). 如果m不是一个描述符，那么它会直接被返回。如果m不在字典中，Python会继续通过object.__getattribute__()查找。</p>
+<p>注意，在Python 2.2中，只有在m是一个数据描述符的情况下，super(B, obj).m()才会调用__get__()。在Python 2.3中，非数据描述符也会被调用，除非是在一个旧式的类中。这里的实现细节在Objects/typeobject.c的super_getattro()中，一个等价的纯Python的实现可以在Guido’s Tutorial中找到。</p>
+<p>以上的细节表明描述符机制内置于object，type和super()的__getattribute__()方法中。类型从object中继承了这种机制，或则是从某个具有类似功能的meta-class中获得。同样，类型可以通过重写__getattribute__()关闭描述符的调用。</p>
+<p>##描述符示例##<br>下面的代码创建了一个类型，他的对象是能够在get和set操作时，打印信息的数据描述符。重写__getattribute__()方法可以为所有的特性实现这种行为。但是，在只需要选择监视几个特性的情况下，描述符更加有用。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RevealAccess</span><span class="params">(object)</span>:</span></div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, initval=None, name=<span class="string">'var'</span>)</span>:</span></div><div class="line">		self.val = initval</div><div class="line">		self.name = name</div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__get__</span><span class="params">(self,obj, objtype)</span>:</span></div><div class="line">		<span class="keyword">print</span> <span class="string">'Retrieving'</span>, self.name</div><div class="line">		<span class="keyword">return</span> self.val</div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__set__</span><span class="params">(self, obj, val)</span>:</span></div><div class="line">		<span class="keyword">print</span> <span class="string">'Updating'</span>, self.name</div><div class="line">	    self.val = val</div></pre></td></tr></table></figure></p>
+<pre><code>&gt;&gt;&gt; class MyClass(object):
+x = RevealClass(10, &apos;var &quot;x&quot;&apos;)
+y = 5
+&gt;&gt;&gt; m = MyClass()
+&gt;&gt;&gt; m.x
+Retrieving var &quot;x&quot;
+10
+&gt;&gt;&gt; m.x = 20
+Updating var &quot;x&quot;
+&gt;&gt;&gt; m.x
+Retrieving var &quot;x&quot;
+20
+&gt;&gt;&gt; m.y
+5
+</code></pre><p>可以看出，描述符的规则很简单却有很广泛的用途。某些应用场景十分常见，以至于他们已经被封装成了函数调用。属性(properties)，绑定和非绑定方法，静态方法和类方法都是基于描述符规则实现的。</p>
+<p>##属性Properties##<br>数据描述符在特性被访问时，自动触发函数调用。使用property()函数是实现数据描述符的一种简洁的方法。它的函数签名（signature）如下：</p>
+<pre><code>property(fget=None, fset=None, fdel=None, doc=None) -&gt;property attribute
+</code></pre><p>文档中给出了一个定义受控属性x的典型例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">C</span><span class="params">(object)</span>:</span></div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">getx</span><span class="params">(self)</span>:</span> <span class="keyword">return</span> self.__x</div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">setx</span><span class="params">(self, value)</span>:</span> self.__x = value</div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">delx</span><span class="params">(self)</span>:</span> <span class="keyword">del</span> self.__x</div><div class="line">	x = property(getx, setx, delx, <span class="string">"I'm the 'x' property."</span>)</div></pre></td></tr></table></figure>
+<p>就property()函数关于描述符机制的实现，下面给出了等价的纯Python实现。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Property</span><span class="params">(object)</span>:</span></div><div class="line">	<span class="string">"Emulate PyProperty_Type() in Objects/descrobject.c"</span></div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, fget=None, fset=None, fdel=None, doc=None)</span>:</span></div><div class="line">		self.fget = fget</div><div class="line">		self.fset = fset</div><div class="line">		self.fdel = fdel</div><div class="line">		<span class="keyword">if</span> doc <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">and</span> fget <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">			doc = fget.__doc__</div><div class="line">			self.__doc__ = doc</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__get__</span><span class="params">(self, obj, objtype=None)</span>:</span></div><div class="line">		<span class="keyword">if</span> obj <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">			<span class="keyword">return</span> self</div><div class="line">		<span class="keyword">if</span> self.fget <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">			<span class="keyword">raise</span> AttributeError(<span class="string">"unreadable attribute"</span>)</div><div class="line">		<span class="keyword">return</span> self.fget(obj)</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__set__</span><span class="params">(self, obj, value)</span>:</span></div><div class="line">		<span class="keyword">if</span> self.fset <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">			<span class="keyword">raise</span> AttributeError(<span class="string">"can't set attribute"</span>)</div><div class="line">		self.fset(obj, value)</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__delete__</span><span class="params">(self, obj)</span>:</span></div><div class="line">		<span class="keyword">if</span> self.fdel <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">			<span class="keyword">raise</span> AttributeError(<span class="string">"can't delete attribute"</span>)</div><div class="line">		self.fdel(obj)</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">getter</span><span class="params">(self, fget)</span>:</span></div><div class="line">		<span class="keyword">return</span> type(self)(fget, self.fset, self.fdel, self.__doc__)</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">setter</span><span class="params">(self, fset)</span>:</span></div><div class="line">		<span class="keyword">return</span> type(self)(self.fget, fset, self.fdel, self.__doc__)</div><div class="line"></div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">deleter</span><span class="params">(self, fdel)</span>:</span></div><div class="line">	    <span class="keyword">return</span> type(self)(self.fget, self.fset, fdel, self.__doc__)</div></pre></td></tr></table></figure>
+<p>内建函数property()在用户接口提供特性访问权限，并且随后对特性的改变需要有函数介入的情况下，是非常有用的。<br>例如，一个电子表格的类可能会通过Cell(‘b10′).value提供对一个单元格值的访问。后来对程序的改进可能要求每次访问时，单元格的值需要被重新计算。但是，程序员可能不想影响到现存的直接访问特性的客户代码。解决的方法就是采用一个属性（property）数据描述符将对值特性的访问包装起来。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Cell</span><span class="params">(object)</span>:</span></div><div class="line">	. . .</div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">getvalue</span><span class="params">(self, obj)</span>:</span></div><div class="line">		<span class="string">"Recalculate cell before returning value"</span></div><div class="line">		self.recalc()</div><div class="line">		<span class="keyword">return</span> obj._value</div><div class="line">	value = property(getvalue)</div></pre></td></tr></table></figure></p>
+<p>##函数和方法##<br>Python的面向对象特性建立在一个基于函数的环境上。非数据描述符将这两者紧密的联系起来。</p>
+<p>类的字典将方法作为函数存储。在一个类的定义中，方法通过关键字def和lambda被定义，这也是建立函数的一般方法。方法和普通函数唯一的区别在于，方法的第一个参数保留给了对象实例。根据Python的习惯，这个实例的引用被称为self，但是它也可以被命名为this或者其他的变量名。</p>
+<p>为了支持方法的调用，函数中包含了__get__()方法来在访问特性时绑定方法。这意味所有的函数都是非数据描述符，他们返回绑定还是非绑定函数取决于他们是被对象还是被类型调用。用纯Python表示，它的工作方式如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Function</span><span class="params">(object)</span>:</span></div><div class="line">	. . .</div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__get__</span><span class="params">(self, obj, objtype=None)</span>:</span></div><div class="line">		<span class="string">"Simulate func_descr_get() in Objects/funcobject.c"</span></div><div class="line">	    <span class="keyword">return</span> types.MethodType(self, obj, objtype)</div></pre></td></tr></table></figure><br>启动一个解释器来看一下函数描述符在是如何工作的：</p>
+<pre><code>&gt;&gt;&gt; class D(object):
+ def f(self, x):
+  return x
+&gt;&gt;&gt; d = D()
+&gt;&gt;&gt; D.__dict__[&apos;f&apos;] # Stored internally as a function
+
+&gt;&gt;&gt; D.f # Get from a class becomes an unbound method
+
+&gt;&gt;&gt; d.f # Get from an instance becomes a bound method
+&gt;
+</code></pre><p>输出显示了绑定和非绑定的函数属于两种不同的类型。尽管他们可以被作为不同类型实现，Objects/classobject.c中PyMethod_Type的 C实现采用的是同一个对象的两种不同表示，使用时需要根据im_self的值是被设置，还是为NULL(C中等价的None)来判断。<br>同时，调用一个函数对象的效果也由im_self域决定。如果设置了im_self(表示绑定)，原始的函数（存储在im_func中）在被调用时，第一个参数被设置为实例，正如期望那样。如果没有绑定，所有的参数被直接传递给原始函数而不做任何修改。instancemethod_call()的C实现除了包含一些类型检查，并不是特别复杂。</p>
+<p>##静态类和方法##<br>非数据的描述符提供了一种简单的机制来使得从函数到方法的转化更加多样化。</p>
+<p>我们回顾一下，函数因为实现了__get__()方法，所以当他们被作为属性访问时，可以被转化为方法。非数据描述符将obj.f(*args)调用转化为f(obj, *args)。klass.f(*args)变成了f(*args)。</p>
+<p>下面这个表单总结了绑定，和绑定最常见的两种变形。</p>
+<p><table border="1"></table></p>
+<p><tbody></tbody></p>
+<p><tr></tr></p>
+<p><th>变形</th></p>
+<p><th>从对象调用</th></p>
+<p><th>从类型调用</th><br></p>
+<p><tr></tr></p>
+<p><th>函数</th></p>
+<p><th>f(obj, *args)</th></p>
+<p><th>f(*args)</th><br></p>
+<p><tr></tr></p>
+<p><th>静态方法</th></p>
+<p><th>f(*args)</th></p>
+<p><th>f(*args)</th><br></p>
+<p><tr></tr></p>
+<p><th>类方法</th></p>
+<p><th>f(type(obj), *args)</th></p>
+<p><th>f(klass, *args)</th><br><br><br><br>静态方法直接返回底层的实现函数不做任何改变。调用c.f 或者C.f都等价于直接查找object.__getattribute__(c, “f”) 或者object.__getattribute__(C, “f”)。因此，这个函数在对象和类中的访问是等价的。</p>
+<p>不需要引用self的方法适合采用静态方法实现。</p>
+<p>例如，一个统计的包或许会为实验数据设计一个容器类。这个类为数据提供了常见的计算平均值的方法，平均值，中值，和其他描述这组数据的统计值。但是，或许有些函数在概念上和数据相关，但又不依赖于数据。例如，erf(x)利用统计方法处理变化曲线，但是它并不直接依赖于某个数据集合。它可以被一个对象或者类型调用：s.erf(1.5) –&gt; .9332 或者Sample.erf(1.5) –&gt; .9332。</p>
+<p>由于静态方法不加改变的返回底层的函数，下面的实例应该很容易理解：</p>
+<pre><code>&gt;&gt;&gt; class E(object):
+         def f(x):
+          print x
+         f = staticmethod(f)
+&gt;&gt;&gt; print E.f(3)
+3
+&gt;&gt;&gt; print E().f(3)
+3
+</code></pre><p>采用非数据描述符规则，一个纯Python版的staticmethond()的实现如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">StaticMethod</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="string">"Emulate PyStaticMethod_Type() in Objects/funcobject.c"</span></div><div class="line">    </div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, f)</span>:</span></div><div class="line">	    self.f = f</div><div class="line">	    </div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__get__</span><span class="params">(self, obj, objtype=None)</span>:</span></div><div class="line">	    <span class="keyword">return</span> self.f</div></pre></td></tr></table></figure><br>与静态方法不同，类方法需要在调用函数前将类型的引用添加到参数表里。无论调用者是对象还是类型，这种形式是一致的：</p>
+<pre><code>&gt;&gt;&gt; class E(object):
+     def f(klass, x):
+          return klass.__name__, x
+     f = classmethod(f)
+&gt;&gt;&gt; print E.f(3)
+(&apos;E&apos;, 3)
+&gt;&gt;&gt; print E().f(3)
+(&apos;E&apos;, 3)
+</code></pre><p>类方法的这种行为在一个函数需要使用类型的引用而不关心底层数据时，是十分有用的。类方法的一个常见用法是创建类的替代构造函数。在Python 2.3中，类函数dict.fromkeys()可以使用一个键的序列创建一个新的字典。纯Python的等价实现如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dict</span><span class="params">(object)</span>:</span></div><div class="line">	. . .</div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">fromkeys</span><span class="params">(klass, iterable, value=None)</span>:</span></div><div class="line">	    <span class="string">"Emulate dict_fromkeys() in Objects/dictobject.c"</span></div><div class="line">		d = klass()</div><div class="line">	    <span class="keyword">for</span> key <span class="keyword">in</span> iterable:</div><div class="line">	        d[key] = value</div><div class="line">	    <span class="keyword">return</span> d</div><div class="line">	fromkeys = classmethod(fromkeys)</div></pre></td></tr></table></figure><br>现在一个具有唯一键的新的字典可以按照如下方法构建：</p>
+<pre><code>&gt;&gt;&gt; Dict.fromkeys(&apos;abracadabra&apos;)
+{&apos;a&apos;: None, &apos;r&apos;: None, &apos;b&apos;: None, &apos;c&apos;: None, &apos;d&apos;: None}
+</code></pre><p>运用非数据描述符规则，一个纯Python版本的classmethod()实现如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassMethod</span><span class="params">(object)</span>:</span></div><div class="line">	<span class="string">"Emulate PyClassMethod_Type() in Objects/funcobject.c"</span></div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, f)</span>:</span></div><div class="line">	    self.f = f</div><div class="line">	</div><div class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__get__</span><span class="params">(self, obj, klass=None)</span>:</span></div><div class="line">	    <span class="keyword">if</span> klass <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">	        klass = type(obj)</div><div class="line">	    <span class="function"><span class="keyword">def</span> <span class="title">newfunc</span><span class="params">(*args)</span>:</span></div><div class="line">	        <span class="keyword">return</span> self.f(klass, *args)</div><div class="line">	    <span class="keyword">return</span> newfunc</div></pre></td></tr></table></figure></p>
+<p>###参考资料<br><a href="http://docs.python.org/2/howto/descriptor.html" target="_blank" rel="external">Descriptor HowTo Guide</a></p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2013/03/18/decriptor-howto-guide/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&text=Descriptor Howto Guide 的翻译"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&is_video=false&description=Descriptor Howto Guide 的翻译"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Descriptor Howto Guide 的翻译&body=Check out this article: http://codethink.me/2013/03/18/decriptor-howto-guide/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&title=Descriptor Howto Guide 的翻译"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2013/03/18/decriptor-howto-guide/&name=Descriptor Howto Guide 的翻译&description=&lt;p&gt;##摘要##&lt;br&gt;本文定义了描述符，阐述了它的规则并解释了描述符是如何被调用的。除此之外，本文还详细介绍了一般的描述符和一些Python内置的描述符（包括函数，属性property，静态方法和类方法）的实现。针对这些概念，作者给出了等价的纯Python实现和对应的示例代码。&lt;/p&gt;
+&lt;p&gt;了解描述符不仅会提供一个更大的工具集合，更会增加对Python工作机制及其优雅设计的理解。&lt;/p&gt;
+&lt;p&gt;##定义及简介##&lt;br&gt;通常，descriptor是指具有“绑定行为”的对象特性，这些特性的访问方法被descriptor规则中的方法重写了。这些方法包括__get__(), __set__()和__del__()。实现了其中任何一个方法的对象就被称为描述符（descriptor）。&lt;br&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

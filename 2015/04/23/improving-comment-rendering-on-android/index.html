@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="原文链接: Improving Comment Rendering on Android  上周，成千上万来自全世界的IG用户齐聚在社区组织的先下聚会 Worldwide InstaMeet11上。WWIM11 是历史上最大，最具地域多样性的Instagram聚会，从Muscat到Bushwick，成千上万用户分享了大约10万张照片。 每月世界上有超过3亿用户每月使用IG，其中65%来自美国以外的">
+<meta name="keywords" content="Android,TextView,Performance">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[译]Instagram是如何提升TextView渲染性能的">
+<meta property="og:url" content="http://codethink.me/2015/04/23/improving-comment-rendering-on-android/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="原文链接: Improving Comment Rendering on Android  上周，成千上万来自全世界的IG用户齐聚在社区组织的先下聚会 Worldwide InstaMeet11上。WWIM11 是历史上最大，最具地域多样性的Instagram聚会，从Muscat到Bushwick，成千上万用户分享了大约10万张照片。 每月世界上有超过3亿用户每月使用IG，其中65%来自美国以外的">
+<meta property="og:image" content="http://codethink.me/images/how-ig-impove-textview-rendering-1.png">
+<meta property="og:image" content="http://codethink.me/images/how-ig-impove-textview-rendering-2.png">
+<meta property="og:image" content="http://codethink.me/images/how-ig-impove-textview-rendering-3.png">
+<meta property="og:image" content="http://codethink.me/images/how-ig-impove-textview-rendering-4.png">
+<meta property="og:image" content="http://codethink.me/images/how-ig-impove-textview-rendering-5.png">
+<meta property="og:image" content="http://codethink.me/images/how-ig-impove-textview-rendering-6.png">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="[译]Instagram是如何提升TextView渲染性能的">
+<meta name="twitter:description" content="原文链接: Improving Comment Rendering on Android  上周，成千上万来自全世界的IG用户齐聚在社区组织的先下聚会 Worldwide InstaMeet11上。WWIM11 是历史上最大，最具地域多样性的Instagram聚会，从Muscat到Bushwick，成千上万用户分享了大约10万张照片。 每月世界上有超过3亿用户每月使用IG，其中65%来自美国以外的">
+<meta name="twitter:image" content="http://codethink.me/images/how-ig-impove-textview-rendering-1.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>[译]Instagram是如何提升TextView渲染性能的</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2015/05/09/intro-of-rxjava/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2015/04/20/android-fold-textview/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&text=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&is_video=false&description=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=[译]Instagram是如何提升TextView渲染性能的&body=Check out this article: http://codethink.me/2015/04/23/improving-comment-rendering-on-android/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&name=[译]Instagram是如何提升TextView渲染性能的&description=&lt;p&gt;原文链接: &lt;a href=&quot;http://instagram-engineering.tumblr.com/post/114508858967/improving-comment-rendering-on-android&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Improving Comment Rendering on Android&lt;/a&gt; &lt;/p&gt;
+&lt;p&gt;上周，成千上万来自全世界的IG用户齐聚在社区组织的先下聚会 Worldwide InstaMeet11上。WWIM11 是历史上最大，最具地域多样性的Instagram聚会，从Muscat到Bushwick，成千上万用户分享了大约10万张照片。&lt;/p&gt;
+&lt;p&gt;每月世界上有超过3亿用户每月使用IG，其中65%来自美国以外的国家，无论用户在哪，我们一致致力于让IG更快，更容易使用。自从去年夏天IG重新设计后，我们在继续努力提升性能。&lt;/p&gt;
+&lt;p&gt;我们最近的一项改进是关于渲染庞大复杂的文本以及如何通过改进它优化IG的feed滚动。我们希望你可以从我们的经验中找到提升自己app速度的方法。&lt;br&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        [译]Instagram是如何提升TextView渲染性能的
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2015-04-23T11:13:01.000Z" itemprop="datePublished">2015-04-23</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Android/">Android</a>, <a class="tag-link" href="/tags/Performance/">Performance</a>, <a class="tag-link" href="/tags/TextView/">TextView</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>原文链接: <a href="http://instagram-engineering.tumblr.com/post/114508858967/improving-comment-rendering-on-android" target="_blank" rel="external">Improving Comment Rendering on Android</a> </p>
+<p>上周，成千上万来自全世界的IG用户齐聚在社区组织的先下聚会 Worldwide InstaMeet11上。WWIM11 是历史上最大，最具地域多样性的Instagram聚会，从Muscat到Bushwick，成千上万用户分享了大约10万张照片。</p>
+<p>每月世界上有超过3亿用户每月使用IG，其中65%来自美国以外的国家，无论用户在哪，我们一致致力于让IG更快，更容易使用。自从去年夏天IG重新设计后，我们在继续努力提升性能。</p>
+<p>我们最近的一项改进是关于渲染庞大复杂的文本以及如何通过改进它优化IG的feed滚动。我们希望你可以从我们的经验中找到提升自己app速度的方法。<br><a id="more"></a></p>
+<p>#产品需求和性能问题</p>
+<p>在IG中，feed是由图片，视频和文字组成的。对于每个图片和视频，我们需要展示对应的图片说明和5条最近的评论。由于用户通常通过图片说明来讲书图片背后的故事，这些图片说明通常是大段复杂的文字，甚至可能包含链接和emoji表情。<br><img src="/images/how-ig-impove-textview-rendering-1.png" alt=""><br>渲染这种复杂文本的主要问题在于它滚动时对性能的影响。在Android中，文本的渲染是很慢的。即使在一个像Nexus 5这样的新设备上，一段有十几行复杂文本的图片说明的初始绘制时间可能会达到50ms，而其文本的measure阶段就需要30ms。这些都发生在UI线程，在滚动时会导致app跳帧。</p>
+<p>#使用text.Layout，缓存text.Layout<br>Android有很多用于文字展示的控件，但实际上，他们都用text.Layout进行渲染。例如，TextView会将String转化为一个text.Layout对象，并通过canvas API将它绘制到屏幕上。</p>
+<p>由于text.Layout需要在构造函数中测量文本的高度，因此它的创建效率不高。缓存text.Layout和复用text.Layout实例可以节省这部分时间。Android的TextView控件并没有提供设置TextLayout的方法，但是添加一个这样的方法并不困难：</p>
+<p><img src="/images/how-ig-impove-textview-rendering-2.png" alt=""></p>
+<p>使用自定义的view来手动绘制text.Layout会提升其性能：TextView是一个包含大量特性的通用控件。如果我们只需要在屏幕上渲染静态的，可点击的文本，事情就简单多了：</p>
+<ul>
+<li><p>我们可以不用从SpannableStringBuilder转化到String。根据你的文本中是否包含链接，底层的TextView可能会复制一份你的字符串，这需要分配一些内存。</p>
+</li>
+<li><p>我们可以一直使用StaticLayout，这比DynamicLayout要稍微快一些。</p>
+</li>
+<li><p>我们可以避免使用TexView中其他的逻辑： 监听文本修改的逻辑，展示嵌入drawable的逻辑，绘制编辑器的逻辑以及弹出下拉列表的逻辑。</p>
+</li>
+</ul>
+<p>通过使用TextLayoutView，我们可以缓存和复用text.Layout，从而避免了每次调用TextView的setText(CharSequence c)方法时都要花费20ms来创建它。</p>
+<p>#下载feed后准备好Layout缓存<br>由于我们确定会在下载评论后展示他们，一个简单的改进是在下载它们后就准备好text.Layout的缓存。<br><img src="/images/how-ig-impove-textview-rendering-3.png" alt=""></p>
+<p>#停止滚动后准备好TextLayoutCache<br>在可以设置text.Layout缓存后，我们的到来常数级的测量（measure）和绑定（binding）时间。但是初次绘制的时间仍然很长。50ms的绘制时间可能会导致明显的卡顿。</p>
+<p>这50ms中的大部分被用于测量文本高度以及产生文字符号。这些都是CPU操作。为了提升文本渲染速度，Android在ICS中引入了TextLayoutCache用于缓存这些中间结果。TextLayoutCache是一个LRU缓存，缓存的key是文本。如果查询缓存时命中，文本的绘制速度会有很大提升。</p>
+<p>在我们的测试中，这种缓存可以将绘制时间从30ms-50ms减少到2ms-6ms。<br><img src="/images/how-ig-impove-textview-rendering-4.png" alt=""><br>为了更好的提升绘制性能，我们可以在绘制文本到屏幕前准备好这个缓存。我们的思路是在一块屏幕外的canvas上虚拟的绘制这些文本。这样在我们绘制文本到屏幕前，TextLayoutCache就已经在一个背景线程中被准备好了。<br><img src="/images/how-ig-impove-textview-rendering-5.png" alt=""><br>默认情况下，TextLayoutCache的大小为0.5M，这足以缓存十几张图片的评论。我们决定在用户停止滑动时准备缓存，我们向用户滑动的方向提前缓存5个图片的评论。在任何时候，我们都至少在任何一个方向上缓存了5个图片的评论。<br><img src="/images/how-ig-impove-textview-rendering-6.png" alt=""></p>
+<p>在应用了所有的这些优化后，掉帧情况减少了60%，而卡顿的情况减少了50%。我们希望这些能帮助你提升你app的速度和性能。告诉我们你的想法吧，我们期待听到你的经验。</p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&text=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&is_video=false&description=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=[译]Instagram是如何提升TextView渲染性能的&body=Check out this article: http://codethink.me/2015/04/23/improving-comment-rendering-on-android/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&title=[译]Instagram是如何提升TextView渲染性能的"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/04/23/improving-comment-rendering-on-android/&name=[译]Instagram是如何提升TextView渲染性能的&description=&lt;p&gt;原文链接: &lt;a href=&quot;http://instagram-engineering.tumblr.com/post/114508858967/improving-comment-rendering-on-android&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Improving Comment Rendering on Android&lt;/a&gt; &lt;/p&gt;
+&lt;p&gt;上周，成千上万来自全世界的IG用户齐聚在社区组织的先下聚会 Worldwide InstaMeet11上。WWIM11 是历史上最大，最具地域多样性的Instagram聚会，从Muscat到Bushwick，成千上万用户分享了大约10万张照片。&lt;/p&gt;
+&lt;p&gt;每月世界上有超过3亿用户每月使用IG，其中65%来自美国以外的国家，无论用户在哪，我们一致致力于让IG更快，更容易使用。自从去年夏天IG重新设计后，我们在继续努力提升性能。&lt;/p&gt;
+&lt;p&gt;我们最近的一项改进是关于渲染庞大复杂的文本以及如何通过改进它优化IG的feed滚动。我们希望你可以从我们的经验中找到提升自己app速度的方法。&lt;br&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

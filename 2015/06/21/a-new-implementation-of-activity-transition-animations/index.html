@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="#0. 前言为Android中基本的View组建Activity设置转换动画的方式一般有两种：通过overridePendingTransitions设置，以及使用TransitionManager实现。overridePendingTransitions只能使用XML来设置Activity的进入和退出动画，局限性很大。而使用TransitionManager只兼容API level 19及以上的">
+<meta name="keywords" content="Android,Transition,Animations">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一种新的Activity转换动画实现方式">
+<meta property="og:url" content="http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="#0. 前言为Android中基本的View组建Activity设置转换动画的方式一般有两种：通过overridePendingTransitions设置，以及使用TransitionManager实现。overridePendingTransitions只能使用XML来设置Activity的进入和退出动画，局限性很大。而使用TransitionManager只兼容API level 19及以上的">
+<meta property="og:image" content="http://codethink.me/images/transition-no-anim.gif">
+<meta property="og:image" content="http://codethink.me/images/transition-basic-anim.gif">
+<meta property="og:image" content="http://codethink.me/images/transition-anim.gif">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一种新的Activity转换动画实现方式">
+<meta name="twitter:description" content="#0. 前言为Android中基本的View组建Activity设置转换动画的方式一般有两种：通过overridePendingTransitions设置，以及使用TransitionManager实现。overridePendingTransitions只能使用XML来设置Activity的进入和退出动画，局限性很大。而使用TransitionManager只兼容API level 19及以上的">
+<meta name="twitter:image" content="http://codethink.me/images/transition-no-anim.gif">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>一种新的Activity转换动画实现方式</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2015/08/01/dependency-injection-theory/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2015/05/27/use-robolectric-with-espresso-in-android-studio/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&text=一种新的Activity转换动画实现方式"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&is_video=false&description=一种新的Activity转换动画实现方式"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=一种新的Activity转换动画实现方式&body=Check out this article: http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&name=一种新的Activity转换动画实现方式&description=&lt;p&gt;#0. 前言&lt;br&gt;为Android中基本的View组建Activity设置转换动画的方式一般有两种：通过overridePendingTransitions设置，以及使用TransitionManager实现。overridePendingTransitions只能使用XML来设置Activity的进入和退出动画，局限性很大。而使用TransitionManager只兼容API level 19及以上的设备。最近在&lt;a href=&quot;http://frogermcs.github.io/Instagram-with-Material-Design-concept-part-2-Comments-transition/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;InstaMaterial concept&lt;/a&gt;中发现其利用addOnPreDrawListener方法，提供了一种新的Activity转换动画实现方式，这里详细记录下这种基于addOnPreDrawListener()的实现方式。&lt;/p&gt;
+&lt;p&gt;#1. 实现展开动画&lt;br&gt;首先创建一个基本的Activity转换场景，去掉默认的转换动画，没有任何动画的Activity转换效果如下。&lt;br&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        一种新的Activity转换动画实现方式
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2015-06-21T07:27:19.000Z" itemprop="datePublished">2015-06-21</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/Android/">Android</a>, <a class="tag-link" href="/tags/Animations/">Animations</a>, <a class="tag-link" href="/tags/Transition/">Transition</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>#0. 前言<br>为Android中基本的View组建Activity设置转换动画的方式一般有两种：通过overridePendingTransitions设置，以及使用TransitionManager实现。overridePendingTransitions只能使用XML来设置Activity的进入和退出动画，局限性很大。而使用TransitionManager只兼容API level 19及以上的设备。最近在<a href="http://frogermcs.github.io/Instagram-with-Material-Design-concept-part-2-Comments-transition/" target="_blank" rel="external">InstaMaterial concept</a>中发现其利用addOnPreDrawListener方法，提供了一种新的Activity转换动画实现方式，这里详细记录下这种基于addOnPreDrawListener()的实现方式。</p>
+<p>#1. 实现展开动画<br>首先创建一个基本的Activity转换场景，去掉默认的转换动画，没有任何动画的Activity转换效果如下。<br><a id="more"></a><br><img src="/images/transition-no-anim.gif" alt=""><br>修改第二个Activity的布局activty_second，设置最顶层的布局id为root。之后，在SecondAcivity的onCreate中，为root设置动画，核心部分代码如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@Override</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</div><div class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</div><div class="line"></div><div class="line">    setContentView(R.layout.activity_second);</div><div class="line"></div><div class="line">    rootView = findViewById(R.id.root);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (savedInstanceState == <span class="keyword">null</span>) &#123;</div><div class="line">        rootView.getViewTreeObserver().addOnPreDrawListener(<span class="keyword">new</span> ViewTreeObserver.OnPreDrawListener() &#123;</div><div class="line">            <span class="meta">@Override</span></div><div class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onPreDraw</span><span class="params">()</span> </span>&#123;</div><div class="line">                rootView.getViewTreeObserver().removeOnPreDrawListener(<span class="keyword">this</span>);</div><div class="line">                startRootAnimation();</div><div class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure><br>这里需要注意的是： 1)只需要在首次创建时执行动画，因此需要满足条件savedInstanceState == null；2）在onPreDraw中要首先移除OnPreDrawListener，否则在动画过程中会多次调用，导致死循环。<br>最后，startRootAnimation的实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">startRootAnimation</span><span class="params">()</span> </span>&#123;</div><div class="line">    rootView.setScaleY(<span class="number">0.1f</span>);</div><div class="line">    rootView.setPivotY(rootView.getY() + rootView.getHeight() / <span class="number">2</span>);</div><div class="line"></div><div class="line">    rootView.animate()</div><div class="line">            .scaleY(<span class="number">1</span>)</div><div class="line">            .setDuration(<span class="number">1000</span>)</div><div class="line">            .setInterpolator(<span class="keyword">new</span> AccelerateInterpolator())</div><div class="line">            .start();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>此时的动画效果如下：<br><img src="/images/transition-basic-anim.gif" alt=""></p>
+<p>#2. 设置Activity透明背景<br>上面的动画还有一个问题：第二个Activity展开的时候，它的背景不是第一个Activity，而是白色背景，这是因为默认的主题为每个Activity设置了白色作为窗口的背景，因此需要在style中创建一个背景为透明的主题，并在AndroidManifest.xml中设置SecondActivty的主题为透明背景主题。<br>透明背景主题代码如下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">"AppTheme.TransparentActivity"</span>&gt;</span><span class="xml"></span></div><div class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">"android:windowBackground"</span>&gt;</span>@android:color/transparent<span class="tag">&lt;/<span class="name">item</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">"android:windowIsTranslucent"</span>&gt;</span>true<span class="tag">&lt;/<span class="name">item</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">"android:windowAnimationStyle"</span>&gt;</span>@null<span class="tag">&lt;/<span class="name">item</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></div></pre></td></tr></table></figure><br>最后的效果如下：<br><img src="/images/transition-anim.gif" alt=""></p>
+<p>#3. 小结<br>至此实现了一个简单的基于addOnPreDrawListener的转换动画，这种转换动画相对于overridePendingTransitions更为灵活，提供了更多想象空间，同时相比于TransitionManager有更好的兼容性。</p>
+<p>这种方式目前存在的问题是需要为顶级view以及各层子view分别设置动画，使得顶级view和子view同时展开，或子view延后展开（否则会出现子view已经绘制到目标位置，顶级view仍然在执行动画的情况），对于复杂的布局而言实现有些繁琐。</p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&text=一种新的Activity转换动画实现方式"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&is_video=false&description=一种新的Activity转换动画实现方式"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=一种新的Activity转换动画实现方式&body=Check out this article: http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&title=一种新的Activity转换动画实现方式"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/06/21/a-new-implementation-of-activity-transition-animations/&name=一种新的Activity转换动画实现方式&description=&lt;p&gt;#0. 前言&lt;br&gt;为Android中基本的View组建Activity设置转换动画的方式一般有两种：通过overridePendingTransitions设置，以及使用TransitionManager实现。overridePendingTransitions只能使用XML来设置Activity的进入和退出动画，局限性很大。而使用TransitionManager只兼容API level 19及以上的设备。最近在&lt;a href=&quot;http://frogermcs.github.io/Instagram-with-Material-Design-concept-part-2-Comments-transition/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;InstaMaterial concept&lt;/a&gt;中发现其利用addOnPreDrawListener方法，提供了一种新的Activity转换动画实现方式，这里详细记录下这种基于addOnPreDrawListener()的实现方式。&lt;/p&gt;
+&lt;p&gt;#1. 实现展开动画&lt;br&gt;首先创建一个基本的Activity转换场景，去掉默认的转换动画，没有任何动画的Activity转换效果如下。&lt;br&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

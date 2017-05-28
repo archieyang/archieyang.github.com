@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="最近在使用豆瓣api仿写一个豆瓣同城的app，过程中遇到了3中界面的跳变，解决方式整理如下。 #1. UIPageViewController的内容跳变这里现象如图所示。造成这种跳变的原因主要在于，作为UIPageViewController内容的Controller，其View的边界被设置为了父View的margin。如图所示。">
+<meta name="keywords" content="iOS,UI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS开发中3种UI跳变的处理">
+<meta property="og:url" content="http://codethink.me/2015/05/19/fix-ios-jumps/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="最近在使用豆瓣api仿写一个豆瓣同城的app，过程中遇到了3中界面的跳变，解决方式整理如下。 #1. UIPageViewController的内容跳变这里现象如图所示。造成这种跳变的原因主要在于，作为UIPageViewController内容的Controller，其View的边界被设置为了父View的margin。如图所示。">
+<meta property="og:image" content="http://codethink.me/images/pvc-jump.gif">
+<meta property="og:image" content="http://codethink.me/images/relative-to-margin.png">
+<meta property="og:image" content="http://codethink.me/images/without-margin.png">
+<meta property="og:image" content="http://codethink.me/images/pvc-fixed.gif">
+<meta property="og:image" content="http://codethink.me/images/tableview-under-top-bars.gif">
+<meta property="og:image" content="http://codethink.me/images/under-top-bars.png">
+<meta property="og:image" content="http://codethink.me/images/real-under-top-bars.png">
+<meta property="og:image" content="http://codethink.me/images/tableview-under-top-bars-fixed.gif">
+<meta property="og:image" content="http://codethink.me/images/bottom-bar-jump.gif">
+<meta property="og:image" content="http://codethink.me/images/bottom-top.png">
+<meta property="og:image" content="http://codethink.me/images/bottom-bottom.png">
+<meta property="og:image" content="http://codethink.me/images/bottom-bar-fixed.gif">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS开发中3种UI跳变的处理">
+<meta name="twitter:description" content="最近在使用豆瓣api仿写一个豆瓣同城的app，过程中遇到了3中界面的跳变，解决方式整理如下。 #1. UIPageViewController的内容跳变这里现象如图所示。造成这种跳变的原因主要在于，作为UIPageViewController内容的Controller，其View的边界被设置为了父View的margin。如图所示。">
+<meta name="twitter:image" content="http://codethink.me/images/pvc-jump.gif">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>iOS开发中3种UI跳变的处理</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2015/05/27/use-robolectric-with-espresso-in-android-studio/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2015/05/09/intro-of-rxjava/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/05/19/fix-ios-jumps/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/05/19/fix-ios-jumps/&text=iOS开发中3种UI跳变的处理"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/05/19/fix-ios-jumps/&is_video=false&description=iOS开发中3种UI跳变的处理"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=iOS开发中3种UI跳变的处理&body=Check out this article: http://codethink.me/2015/05/19/fix-ios-jumps/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/05/19/fix-ios-jumps/&name=iOS开发中3种UI跳变的处理&description=&lt;p&gt;最近在使用豆瓣api仿写一个豆瓣同城的app，过程中遇到了3中界面的跳变，解决方式整理如下。&lt;/p&gt;
+&lt;p&gt;#1. UIPageViewController的内容跳变&lt;br&gt;这里现象如图所示。&lt;br&gt;&lt;img src=&quot;/images/pvc-jump.gif&quot; alt=&quot;&quot;&gt;&lt;br&gt;造成这种跳变的原因主要在于，作为UIPageViewController内容的Controller，其View的边界被设置为了父View的margin。如图所示。&lt;br&gt;&lt;img src=&quot;/images/relative-to-margin.png&quot; alt=&quot;&quot;&gt;&lt;br&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        iOS开发中3种UI跳变的处理
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2015-05-19T11:02:08.000Z" itemprop="datePublished">2015-05-19</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/UI/">UI</a>, <a class="tag-link" href="/tags/iOS/">iOS</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>最近在使用豆瓣api仿写一个豆瓣同城的app，过程中遇到了3中界面的跳变，解决方式整理如下。</p>
+<p>#1. UIPageViewController的内容跳变<br>这里现象如图所示。<br><img src="/images/pvc-jump.gif" alt=""><br>造成这种跳变的原因主要在于，作为UIPageViewController内容的Controller，其View的边界被设置为了父View的margin。如图所示。<br><img src="/images/relative-to-margin.png" alt=""><br><a id="more"></a><br>滚动完成后，margin消失，内容View宽度扩展到没有margin的宽度，导致界面跳动。修复方法如下图所示，只需要在内容Controller中将leading和trailing设置为父View的leading和trailing，不包含margin即可。<br><img src="/images/without-margin.png" alt=""></p>
+<p>修复后效果如图所示。<br><img src="/images/pvc-fixed.gif" alt=""></p>
+<p>#2.UITableViewController的Top Bars跳变<br>在实现一个简单的点击UITableViewController item展示详情的界面时，在top bar出出现了如下图的跳变，容易看出是由于被top bar覆盖区域从有内容，到没有内容导致其跳动。</p>
+<p><img src="/images/tableview-under-top-bars.gif" alt=""></p>
+<p>这时UITableViewController关键属性设置如下：</p>
+<p><img src="/images/under-top-bars.png" alt=""></p>
+<p>而此时详情ViewController并没有勾选Under Top Bars这个选项。这里的Under Top Bars表示视图的上边界是否被Top Bars遮挡，出现UI跳变是因为UITableViewController的View绘制了Top Bars的背景，而详情页面没有。而由于勾选了Ajust Scroll View Insets，其内容会适应边界，不被Top Bars遮挡，视觉上和没有勾选Under Top Bars一样，下图是只勾选Under Top Bars，而不选择Ajust Scroll View Insets的界面，可以清楚的看到UITableView实际上已经上移到了Top Bars下方。<br><img src="/images/real-under-top-bars.png" alt=""></p>
+<p>取消UITableViewController的这个选项后，跳变修复，效果如下图所示。</p>
+<p><img src="/images/tableview-under-top-bars-fixed.gif" alt=""></p>
+<p>#3.Hide Bottom Bar on Push<br>在从精选页面进入详情页面时，希望隐藏底部的Tab Bar，因此勾选了详情Controller的Hide Bottom Bar on Push选项。此时，进入详情界面时，底部出现黑色从有到无的跳变，效果如下图。<br><img src="/images/bottom-bar-jump.gif" alt=""><br>此时的详情View底部约束如下：<br><img src="/images/bottom-top.png" alt=""><br>可以看出，详情View（这里是ScrollView）的底部是于Bottom Layout Guide的顶部对齐的，而在push过程中，由于隐藏了bottom bar，Bottom Layout Guide的顶部高度发生了变化（从bottom bar上方变为屏幕底部），因此详情View高度随之变化。</p>
+<p>这里的修复方式是让详情View的底部始终与Bottom Layout Guide的底部对齐，如下图所示。<br><img src="/images/bottom-bottom.png" alt=""><br>这样详情View的底部在任何时候都会绘制原来被bottom bar占有的区域，修复后效果如下图所示。<br><img src="/images/bottom-bar-fixed.gif" alt=""></p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/05/19/fix-ios-jumps/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/05/19/fix-ios-jumps/&text=iOS开发中3种UI跳变的处理"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/05/19/fix-ios-jumps/&is_video=false&description=iOS开发中3种UI跳变的处理"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=iOS开发中3种UI跳变的处理&body=Check out this article: http://codethink.me/2015/05/19/fix-ios-jumps/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/05/19/fix-ios-jumps/&title=iOS开发中3种UI跳变的处理"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/05/19/fix-ios-jumps/&name=iOS开发中3种UI跳变的处理&description=&lt;p&gt;最近在使用豆瓣api仿写一个豆瓣同城的app，过程中遇到了3中界面的跳变，解决方式整理如下。&lt;/p&gt;
+&lt;p&gt;#1. UIPageViewController的内容跳变&lt;br&gt;这里现象如图所示。&lt;br&gt;&lt;img src=&quot;/images/pvc-jump.gif&quot; alt=&quot;&quot;&gt;&lt;br&gt;造成这种跳变的原因主要在于，作为UIPageViewController内容的Controller，其View的边界被设置为了父View的margin。如图所示。&lt;br&gt;&lt;img src=&quot;/images/relative-to-margin.png&quot; alt=&quot;&quot;&gt;&lt;br&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+

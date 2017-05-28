@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="#0.  前言之前写过3篇博客分析Philm MVP架构的实现，最近在接触到一些关于clean architecture的话题后，又仔细读了一些关于MVP以及MVVM的文章，觉得当时的一些理解不够深入，因此针对应用架构的理论部分重新做出总结。 #1. Model-View-PresenterMartin Fowler的这篇Retirement note for Model View Present">
+<meta name="keywords" content="MVP,MVVM,Passive View,Supervising Controller">
+<meta property="og:type" content="article">
+<meta property="og:title" content="再谈MVP与MVVM">
+<meta property="og:url" content="http://codethink.me/2015/08/06/mvp-and-mvvm/index.html">
+<meta property="og:site_name" content="CodeThink">
+<meta property="og:description" content="#0.  前言之前写过3篇博客分析Philm MVP架构的实现，最近在接触到一些关于clean architecture的话题后，又仔细读了一些关于MVP以及MVVM的文章，觉得当时的一些理解不够深入，因此针对应用架构的理论部分重新做出总结。 #1. Model-View-PresenterMartin Fowler的这篇Retirement note for Model View Present">
+<meta property="og:updated_time" content="2017-05-28T03:01:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="再谈MVP与MVVM">
+<meta name="twitter:description" content="#0.  前言之前写过3篇博客分析Philm MVP架构的实现，最近在接触到一些关于clean architecture的话题后，又仔细读了一些关于MVP以及MVVM的文章，觉得当时的一些理解不够深入，因此针对应用架构的理论部分重新做出总结。 #1. Model-View-PresenterMartin Fowler的这篇Retirement note for Model View Present">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>再谈MVP与MVVM</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2015/08/22/tell-dont-ask/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2015/08/06/dependency-injection-with-dagger-2/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/08/06/mvp-and-mvvm/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&text=再谈MVP与MVVM"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&is_video=false&description=再谈MVP与MVVM"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=再谈MVP与MVVM&body=Check out this article: http://codethink.me/2015/08/06/mvp-and-mvvm/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&name=再谈MVP与MVVM&description=&lt;p&gt;#0.  前言&lt;br&gt;之前写过&lt;a href=&quot;http://codethink.me/tags/MVP/&quot;&gt;3篇博客&lt;/a&gt;分析Philm MVP架构的实现，最近在接触到一些关于clean architecture的话题后，又仔细读了一些关于MVP以及MVVM的文章，觉得当时的一些理解不够深入，因此针对应用架构的理论部分重新做出总结。&lt;/p&gt;
+&lt;p&gt;#1. Model-View-Presenter&lt;br&gt;Martin Fowler的这篇&lt;a href=&quot;http://martinfowler.com/eaaDev/ModelViewPresenter.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Retirement note for Model View Presenter Pattern&lt;/a&gt;文章明确表明了，这个模式已经“退休”了。作为MVC模式的变形之一，它被重新归纳为了MVC模式的两种变形：Passive View和Supervisor controller。&lt;/p&gt;
+&lt;p&gt;##1.1 Passive View&lt;br&gt;Passive View是MVC模式的一种变形。对于UI而言，它被分为负责显示的View和接收用户交互的Controller。Passive View是一个完全被动的View，不负责UI更新，因此也不依赖Model。&lt;/p&gt;
+&lt;p&gt;这种模式强调的是View与Model之间的独立，Controller负责全部的View与Model的同步工作，所有的消息都需要通过Controller传递。&lt;br&gt;"><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        再谈MVP与MVVM
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">CodeThink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2015-08-06T10:50:42.000Z" itemprop="datePublished">2015-08-06</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/MVP/">MVP</a>, <a class="tag-link" href="/tags/MVVM/">MVVM</a>, <a class="tag-link" href="/tags/Passive-View/">Passive View</a>, <a class="tag-link" href="/tags/Supervising-Controller/">Supervising Controller</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>#0.  前言<br>之前写过<a href="http://codethink.me/tags/MVP/">3篇博客</a>分析Philm MVP架构的实现，最近在接触到一些关于clean architecture的话题后，又仔细读了一些关于MVP以及MVVM的文章，觉得当时的一些理解不够深入，因此针对应用架构的理论部分重新做出总结。</p>
+<p>#1. Model-View-Presenter<br>Martin Fowler的这篇<a href="http://martinfowler.com/eaaDev/ModelViewPresenter.html" target="_blank" rel="external">Retirement note for Model View Presenter Pattern</a>文章明确表明了，这个模式已经“退休”了。作为MVC模式的变形之一，它被重新归纳为了MVC模式的两种变形：Passive View和Supervisor controller。</p>
+<p>##1.1 Passive View<br>Passive View是MVC模式的一种变形。对于UI而言，它被分为负责显示的View和接收用户交互的Controller。Passive View是一个完全被动的View，不负责UI更新，因此也不依赖Model。</p>
+<p>这种模式强调的是View与Model之间的独立，Controller负责全部的View与Model的同步工作，所有的消息都需要通过Controller传递。<br><a id="more"></a></p>
+<p>##1.2 Supervising Controller<br>Supervising Controller模式强调Controller只处理复杂逻辑和部分与View和Model之间的同步。Controller中尽可能减少View与Model的同步工作，将其转交数据绑定来实现，Controller只处理同步机制无法处理的复杂的交互和同步。因此，这种模式中View与Model需要直接通信，存在依赖关系。</p>
+<p>#2. Model-View-ViewModel<br>ViewModel可以同时和多个Domain Model交互，它并不是一个特定Domain Model为了适合View而构建的外观模式。我们可以认为ViewModel是一个特殊的，不依赖于系统GUI框架的View。此外，需要注意的是。一个ViewModel可以应用于多个View，但是一个View只能拥有一个ViewModel。</p>
+<p>所有的事件和响应逻辑都需要ViewModel来处理，因此它的View变得很简单，这与Passive View模式很相似。它与Passive View的区别在于: ViewModel中不包含控件，控件需要依靠自己获取ViewModel中的状态。而Passive View中的Controller可以包含控件，这降低了控件自己获取状态带来的风险，但是，Passive View也因此引入了新的问题：它依赖于系统GUI控件，无法独立进行测试。</p>
+<p>#3.小结<br>总结一下3种模式的特点：<br>1) Passive View： 强调View与Model的独立，Controller负责全部的同步工作。<br>2) Supervising Controller：强调Controller中只处理复杂逻辑，尽可能少的负责View与Model间的同步工作。View与Model相互依赖。<br>3）MVVM：强调ViewModel作为一个View的抽象层，其与实际的View一对多的关系，同时其自身不依赖系统控件，方便独立测试。</p>
+<p>#参考</p>
+<ol>
+<li><a href="http://martinfowler.com/eaaDev/ModelViewPresenter.html" target="_blank" rel="external">Retirement note for Model View Presenter Pattern</a></li>
+<li><a href="http://martinfowler.com/eaaDev/uiArchs.html" target="_blank" rel="external">GUI Architectures</a></li>
+<li><a href="http://martinfowler.com/eaaDev/PassiveScreen.html" target="_blank" rel="external">Passive View</a></li>
+<li><a href="http://martinfowler.com/eaaDev/SupervisingPresenter.html" target="_blank" rel="external">Supervising Controller</a></li>
+<li><a href="http://martinfowler.com/eaaDev/PresentationModel.html" target="_blank" rel="external">Presentation Model</a></li>
+</ol>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://codethink.me/2015/08/06/mvp-and-mvvm/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&text=再谈MVP与MVVM"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&is_video=false&description=再谈MVP与MVVM"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=再谈MVP与MVVM&body=Check out this article: http://codethink.me/2015/08/06/mvp-and-mvvm/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&title=再谈MVP与MVVM"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://codethink.me/2015/08/06/mvp-and-mvvm/&name=再谈MVP与MVVM&description=&lt;p&gt;#0.  前言&lt;br&gt;之前写过&lt;a href=&quot;http://codethink.me/tags/MVP/&quot;&gt;3篇博客&lt;/a&gt;分析Philm MVP架构的实现，最近在接触到一些关于clean architecture的话题后，又仔细读了一些关于MVP以及MVVM的文章，觉得当时的一些理解不够深入，因此针对应用架构的理论部分重新做出总结。&lt;/p&gt;
+&lt;p&gt;#1. Model-View-Presenter&lt;br&gt;Martin Fowler的这篇&lt;a href=&quot;http://martinfowler.com/eaaDev/ModelViewPresenter.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Retirement note for Model View Presenter Pattern&lt;/a&gt;文章明确表明了，这个模式已经“退休”了。作为MVC模式的变形之一，它被重新归纳为了MVC模式的两种变形：Passive View和Supervisor controller。&lt;/p&gt;
+&lt;p&gt;##1.1 Passive View&lt;br&gt;Passive View是MVC模式的一种变形。对于UI而言，它被分为负责显示的View和接收用户交互的Controller。Passive View是一个完全被动的View，不负责UI更新，因此也不依赖Model。&lt;/p&gt;
+&lt;p&gt;这种模式强调的是View与Model之间的独立，Controller负责全部的View与Model的同步工作，所有的消息都需要通过Controller传递。&lt;br&gt;"><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Archie Yang
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+
